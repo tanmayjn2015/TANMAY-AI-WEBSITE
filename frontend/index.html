@@ -1,0 +1,2233 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Ultimate AI Voice Assistant - Pro Max</title>
+    
+    <!-- External Resources -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ==========================================================================
+           1. CSS VARIABLES & THEMING SYSTEM
+           ========================================================================== */
+        :root {
+            /* Black Diamond Theme (Default) */
+            --bg-main: #000000;
+            --bg-secondary: #0a0a10;
+            --bg-glass: rgba(10, 10, 18, 0.6);
+            --border-glass: rgba(255, 255, 255, 0.08);
+
+            --primary: #00f0ff;
+            --primary-glow: rgba(0, 240, 255, 0.45);
+            --secondary: #a855f7;
+            --tertiary: #ec4899;
+
+            --text-main: #f5f6ff;
+            --text-muted: #9a9ab3;
+
+            --diamond-gradient: linear-gradient(120deg, #00f0ff 0%, #7c5cff 35%, #ec4899 70%, #00f0ff 100%);
+            --msg-user-bg: linear-gradient(135deg, #00f0ff 0%, #a855f7 55%, #ec4899 100%);
+            --msg-user-text: #ffffff;
+            --msg-ai-bg: linear-gradient(160deg, #121218 0%, #0a0a10 100%);
+            --msg-ai-text: #f5f6ff;
+
+            --success: #10b981;
+            --danger: #ff2e63;
+            --warning: #f59e0b;
+
+            /* Typography & Layout */
+            --font-en: 'Inter', sans-serif;
+            --font-bn: 'Hind Siliguri', sans-serif;
+            --border-radius-lg: 24px;
+            --border-radius-md: 16px;
+            --border-radius-sm: 8px;
+
+            /* Transitions */
+            --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-spring: 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        [data-theme="light"] {
+            --bg-main: #f3f4f6;
+            --bg-secondary: #ffffff;
+            --bg-glass: rgba(255, 255, 255, 0.8);
+            --border-glass: rgba(0, 0, 0, 0.08);
+            
+            --text-main: #111827;
+            --text-muted: #6b7280;
+            
+            --msg-user-bg: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+            --msg-ai-bg: #ffffff;
+            --msg-ai-text: #111827;
+            
+            --primary-glow: rgba(14, 165, 233, 0.3);
+        }
+
+        /* ==========================================================================
+           PREMIUM DIAMOND EFFECTS (shared)
+           ========================================================================== */
+        @keyframes diamond-shimmer {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
+        }
+
+        .diamond-text {
+            background: var(--diamond-gradient);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: diamond-shimmer 4s linear infinite;
+        }
+
+        /* Global premium ripple */
+        .ripple-el {
+            position: fixed;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            background: radial-gradient(circle, rgba(0,240,255,0.55) 0%, rgba(168,85,247,0.35) 45%, rgba(236,72,153,0) 75%);
+            transform: translate(-50%, -50%) scale(0);
+            animation: ripple-pop 0.75s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            mix-blend-mode: screen;
+        }
+
+        @keyframes ripple-pop {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 0.9; }
+            60% { opacity: 0.6; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+        }
+
+        .ripple-spark {
+            position: fixed;
+            width: 4px; height: 4px;
+            border-radius: 50%;
+            background: #fff;
+            box-shadow: 0 0 8px 2px var(--primary);
+            pointer-events: none;
+            z-index: 9999;
+            animation: spark-fly 0.6s ease-out forwards;
+        }
+
+        @keyframes spark-fly {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--sx), var(--sy)) scale(0); opacity: 0; }
+        }
+
+        /* ==========================================================================
+           2. RESET & BASE STYLES
+           ========================================================================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: var(--font-en);
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            height: 100vh;
+            height: 100dvh; /* For mobile browsers */
+            overflow: hidden;
+            display: flex;
+            transition: background-color var(--transition-fast), color var(--transition-fast);
+        }
+
+        button, input, select {
+            font-family: inherit;
+            outline: none;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border-glass); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+        /* ==========================================================================
+           3. BACKGROUND ANIMATIONS
+           ========================================================================== */
+        .bg-elements {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .blob {
+            position: absolute;
+            filter: blur(90px);
+            opacity: 0.35;
+            border-radius: 50%;
+            animation: float 20s infinite ease-in-out alternate;
+        }
+
+        .blob-1 {
+            top: -10%; left: -10%;
+            width: 50vw; height: 50vw;
+            background: var(--primary);
+        }
+
+        .blob-2 {
+            bottom: -10%; right: -10%;
+            width: 40vw; height: 40vw;
+            background: var(--secondary);
+            animation-delay: -10s;
+        }
+
+        .blob-3 {
+            top: 40%; left: 50%;
+            width: 35vw; height: 35vw;
+            background: var(--tertiary);
+            animation: float 26s infinite ease-in-out alternate, blob-hue 12s infinite linear;
+            animation-delay: -6s;
+            opacity: 0.28;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(10%, 10%) scale(1.1); }
+            100% { transform: translate(-10%, 20%) scale(0.9); }
+        }
+
+        @keyframes blob-hue {
+            0% { filter: blur(90px) hue-rotate(0deg); }
+            100% { filter: blur(90px) hue-rotate(360deg); }
+        }
+
+        /* Diamond dust particle layer */
+        .dust {
+            position: absolute;
+            width: 3px; height: 3px;
+            background: #fff;
+            border-radius: 50%;
+            opacity: 0;
+            box-shadow: 0 0 6px 2px rgba(0, 240, 255, 0.6);
+            animation: dust-rise linear infinite;
+        }
+
+        @keyframes dust-rise {
+            0% { transform: translateY(0) translateX(0) scale(0.6); opacity: 0; }
+            10% { opacity: 0.9; }
+            90% { opacity: 0.6; }
+            100% { transform: translateY(-110vh) translateX(20px) scale(1.2); opacity: 0; }
+        }
+
+        /* Subtle animated diamond grid overlay */
+        .grid-overlay {
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+            background-size: 42px 42px;
+            mask-image: radial-gradient(ellipse at center, rgba(0,0,0,0.6) 0%, transparent 75%);
+            animation: grid-drift 30s linear infinite;
+        }
+
+        @keyframes grid-drift {
+            0% { background-position: 0 0, 0 0; }
+            100% { background-position: 42px 42px, 42px 42px; }
+        }
+
+        /* ==========================================================================
+           4. SIDEBAR (HISTORY & SETTINGS)
+           ========================================================================== */
+        .app-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            position: relative;
+            z-index: 1;
+        }
+
+        #sidebar {
+            width: 280px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-glass);
+            display: flex;
+            flex-direction: column;
+            transition: transform var(--transition-fast);
+            position: relative;
+            z-index: 20;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-glass);
+        }
+
+        .new-chat-btn {
+            width: 100%;
+            padding: 12px;
+            background: transparent;
+            border: 1px solid var(--border-glass);
+            color: var(--text-main);
+            border-radius: var(--border-radius-sm);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all var(--transition-fast);
+        }
+
+        .new-chat-btn {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .new-chat-btn::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -60%;
+            width: 40%; height: 100%;
+            background: linear-gradient(120deg, transparent, rgba(255,255,255,0.35), transparent);
+            transform: skewX(-20deg);
+            transition: left 0.6s ease;
+        }
+
+        .new-chat-btn:hover::after { left: 130%; }
+
+        .new-chat-btn:hover {
+            background: var(--bg-glass);
+            border-color: var(--primary);
+            color: var(--primary);
+            box-shadow: 0 0 20px var(--primary-glow);
+        }
+
+        .history-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .history-item {
+            padding: 12px 15px;
+            border-radius: var(--border-radius-sm);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-muted);
+            transition: background var(--transition-fast);
+            margin-bottom: 5px;
+        }
+
+        .history-item:hover {
+            background: var(--bg-glass);
+            color: var(--text-main);
+        }
+
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid var(--border-glass);
+        }
+
+        /* Mobile Sidebar Override */
+        @media (max-width: 768px) {
+            #sidebar {
+                position: fixed;
+                left: -280px;
+                height: 100%;
+                box-shadow: 10px 0 30px rgba(0,0,0,0.5);
+            }
+            #sidebar.open {
+                transform: translateX(280px);
+            }
+        }
+
+        /* ==========================================================================
+           5. MAIN CONTENT AREA
+           ========================================================================== */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: rgba(0,0,0,0.2);
+            backdrop-filter: blur(20px);
+            position: relative;
+        }
+
+        /* Header */
+        header {
+            height: 70px;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg-glass);
+            border-bottom: 1px solid var(--border-glass);
+            backdrop-filter: blur(10px);
+            z-index: 10;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-main);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .menu-btn { display: block; }
+        }
+
+        .brand-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            background: var(--diamond-gradient);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: diamond-shimmer 5s linear infinite;
+            letter-spacing: 0.3px;
+        }
+
+        .brand-status {
+            font-size: 0.75rem;
+            color: var(--success);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse-dot 1.5s infinite;
+        }
+
+        @keyframes pulse-dot {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        .header-actions button {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            cursor: pointer;
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            transition: all var(--transition-fast);
+        }
+
+        .header-actions button:hover {
+            color: var(--primary);
+            background: var(--bg-glass);
+        }
+
+        /* ==========================================================================
+           6. CHAT INTERFACE & ANIMATIONS
+           ========================================================================== */
+        #chat-window {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            scroll-behavior: smooth;
+        }
+
+        .message-row {
+            display: flex;
+            width: 100%;
+            margin-bottom: 10px;
+            animation: message-pop var(--transition-spring) forwards;
+            opacity: 0;
+        }
+
+        @keyframes message-pop {
+            0% { opacity: 0; transform: translateY(20px) scale(0.95); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .row-ai { justify-content: flex-start; transform-origin: left bottom; }
+        .row-user { justify-content: flex-end; transform-origin: right bottom; }
+
+        .message-content {
+            display: flex;
+            gap: 12px;
+            max-width: 80%;
+        }
+
+        .row-user .message-content { flex-direction: row-reverse; }
+
+        /* Avatars */
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .avatar-ai {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-glass);
+            color: var(--primary);
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.25);
+        }
+
+        .avatar-user {
+            background: var(--msg-user-bg);
+            background-size: 200% 200%;
+            color: white;
+            animation: diamond-shimmer 6s linear infinite;
+            box-shadow: 0 0 15px var(--primary-glow);
+        }
+
+        /* Message Bubbles */
+        .bubble {
+            padding: 14px 18px;
+            font-size: 1rem;
+            line-height: 1.5;
+            font-family: var(--font-en);
+            position: relative;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.35);
+        }
+
+        .bubble-ai {
+            background: var(--msg-ai-bg);
+            color: var(--msg-ai-text);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--border-radius-md) var(--border-radius-md) var(--border-radius-md) 4px;
+        }
+
+        .bubble-user {
+            background: var(--msg-user-bg);
+            background-size: 200% 200%;
+            color: var(--msg-user-text);
+            border-radius: var(--border-radius-md) var(--border-radius-md) 4px var(--border-radius-md);
+            box-shadow: 0 4px 25px var(--primary-glow);
+            animation: diamond-shimmer 8s linear infinite;
+        }
+
+        /* Typography inside bubble */
+        .bubble p { margin-bottom: 8px; }
+        .bubble p:last-child { margin-bottom: 0; }
+        .bubble strong { color: var(--primary); font-weight: 600; }
+
+        /* Timestamp & Actions */
+        .msg-meta {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 5px;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-family: var(--font-en);
+        }
+
+        .row-user .msg-meta { justify-content: flex-end; }
+        .row-ai .msg-meta { justify-content: flex-start; }
+
+        .action-icon {
+            cursor: pointer;
+            transition: color var(--transition-fast);
+        }
+        .action-icon:hover { color: var(--primary); }
+
+        /* Typing Indicator */
+        .typing-container {
+            display: none;
+            align-items: center;
+            gap: 15px;
+            padding: 10px;
+        }
+
+        .typing-bubble {
+            background: var(--msg-ai-bg);
+            padding: 12px 18px;
+            border-radius: 20px 20px 20px 4px;
+            display: flex;
+            gap: 5px;
+            border: 1px solid var(--border-glass);
+        }
+
+        .typing-dot {
+            width: 6px; height: 6px;
+            background: var(--text-muted);
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+        .typing-dot:nth-child(1) { animation-delay: 0s; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 100% { transform: translateY(0); opacity: 0.5; }
+            50% { transform: translateY(-4px); opacity: 1; background: var(--primary); }
+        }
+
+        /* ==========================================================================
+           7. BOTTOM CONTROLS & VISUALIZER
+           ========================================================================== */
+        .control-area {
+            padding: 20px;
+            background: linear-gradient(to top, var(--bg-main) 50%, transparent);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Audio Visualizer Canvas */
+        #audio-visualizer {
+            width: 100%;
+            height: 60px;
+            position: absolute;
+            bottom: 100px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        #audio-visualizer.active { opacity: 1; }
+
+        .status-display {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 15px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: color 0.3s;
+        }
+
+        /* Ultimate Mic Button */
+        .mic-wrapper {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .mic-wrapper::before {
+            content: '';
+            position: absolute;
+            width: 96px; height: 96px;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg, #00f0ff, #a855f7, #ec4899, #00f0ff);
+            filter: blur(1px);
+            animation: ring-spin 4s linear infinite;
+            opacity: 0.9;
+            z-index: 4;
+        }
+
+        .mic-wrapper::after {
+            content: '';
+            position: absolute;
+            width: 84px; height: 84px;
+            border-radius: 50%;
+            background: var(--bg-main);
+            z-index: 4;
+        }
+
+        @keyframes ring-spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .mic-btn {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-glass);
+            color: var(--primary);
+            font-size: 2rem;
+            cursor: pointer;
+            z-index: 5;
+            transition: all var(--transition-spring);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4), 0 0 40px var(--primary-glow);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .mic-btn:hover {
+            transform: scale(1.08);
+            border-color: var(--primary);
+            box-shadow: 0 10px 35px var(--primary-glow), 0 0 60px var(--primary-glow);
+        }
+
+        .mic-btn:active {
+            transform: scale(0.94);
+        }
+
+        /* Listening State */
+        .mic-btn.listening {
+            background: var(--danger);
+            color: white;
+            border-color: var(--danger);
+            animation: mic-pulse-danger 1.5s infinite;
+        }
+
+        /* Processing State */
+        .mic-btn.processing {
+            background: var(--warning);
+            color: white;
+            border-color: var(--warning);
+            animation: mic-spin 2s linear infinite;
+        }
+
+        /* Speaking State */
+        .mic-btn.speaking {
+            background: var(--msg-user-bg);
+            color: white;
+            border: none;
+            animation: mic-pulse-primary 2s infinite;
+        }
+
+        /* Button Animations */
+        @keyframes mic-pulse-danger {
+            0% { box-shadow: 0 0 0 0 rgba(255, 46, 99, 0.7); }
+            70% { box-shadow: 0 0 0 25px rgba(255, 46, 99, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 46, 99, 0); }
+        }
+
+        @keyframes mic-pulse-primary {
+            0% { box-shadow: 0 0 0 0 rgba(0, 240, 255, 0.7); transform: scale(1); }
+            50% { box-shadow: 0 0 0 20px rgba(168, 85, 247, 0); transform: scale(1.1); }
+            100% { box-shadow: 0 0 0 0 rgba(236, 72, 153, 0); transform: scale(1); }
+        }
+
+        @keyframes mic-spin {
+            0% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(180deg) scale(0.9); }
+            100% { transform: rotate(360deg) scale(1); }
+        }
+
+        .keyboard-hint {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 10px;
+        }
+
+        /* ==========================================================================
+           8. MODALS & OVERLAYS
+           ========================================================================== */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity var(--transition-fast);
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal-box {
+            background: var(--bg-secondary);
+            width: 90%;
+            max-width: 450px;
+            border-radius: var(--border-radius-lg);
+            border: 1px solid var(--border-glass);
+            padding: 30px;
+            transform: translateY(30px) scale(0.95);
+            transition: all var(--transition-spring);
+            box-shadow: 0 25px 60px rgba(0,0,0,0.6), 0 0 40px rgba(0, 240, 255, 0.08);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .modal-box::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: var(--diamond-gradient);
+            background-size: 300% 100%;
+            animation: diamond-shimmer 4s linear infinite;
+        }
+
+        .modal-overlay.active .modal-box {
+            transform: translateY(0) scale(1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .modal-header h2 {
+            font-size: 1.4rem;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .close-btn {
+            background: var(--bg-secondary);
+            border: none;
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .close-btn:hover { background: var(--danger); color: white; }
+
+        /* Form Controls */
+        .form-group { margin-bottom: 20px; }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 14px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--border-radius-sm);
+            color: var(--text-main);
+            font-size: 1rem;
+            transition: border-color var(--transition-fast);
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px var(--primary-glow);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: var(--border-radius-sm);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            margin-top: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -60%;
+            width: 40%; height: 100%;
+            background: linear-gradient(120deg, transparent, rgba(255,255,255,0.45), transparent);
+            transform: skewX(-20deg);
+            transition: left 0.6s ease;
+        }
+
+        .btn:hover::after { left: 130%; }
+
+        .btn-primary {
+            background: var(--msg-user-bg);
+            background-size: 200% 200%;
+            color: white;
+            animation: diamond-shimmer 6s linear infinite;
+        }
+        .btn-primary:hover { box-shadow: 0 5px 25px var(--primary-glow), 0 0 40px rgba(168,85,247,0.3); transform: translateY(-2px); }
+
+        .btn-danger { background: rgba(255, 46, 99, 0.1); color: var(--danger); border: 1px solid rgba(255, 46, 99, 0.3); }
+        .btn-danger:hover { background: var(--danger); color: white; box-shadow: 0 5px 20px rgba(255,46,99,0.4); }
+
+        /* ==========================================================================
+           9. TOAST NOTIFICATIONS
+           ========================================================================== */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: var(--bg-glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-glass);
+            padding: 12px 24px;
+            border-radius: 30px;
+            color: var(--text-main);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            animation: toast-in var(--transition-spring) forwards;
+        }
+
+        .toast.error i { color: var(--danger); }
+        .toast.success i { color: var(--success); }
+        .toast.info i { color: var(--primary); }
+
+        .toast.hide { animation: toast-out 0.3s ease-in forwards; }
+
+        @keyframes toast-in {
+            0% { opacity: 0; transform: translateY(-50px) scale(0.9); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes toast-out {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-20px) scale(0.9); }
+        }
+
+        /* ==========================================================================
+           10. WELCOME / ONBOARDING SCREEN
+           ========================================================================== */
+        #welcome-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-main);
+            z-index: 500;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            transition: opacity 0.5s ease;
+        }
+
+        #welcome-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .robot-logo {
+            font-size: 5rem;
+            color: var(--primary);
+            margin-bottom: 20px;
+            animation: float 3s ease-in-out infinite alternate, logo-glow 2.5s ease-in-out infinite alternate;
+            filter: drop-shadow(0 0 20px var(--primary-glow));
+        }
+
+        @keyframes logo-glow {
+            0% { filter: drop-shadow(0 0 15px rgba(0,240,255,0.5)); }
+            50% { filter: drop-shadow(0 0 35px rgba(168,85,247,0.6)); }
+            100% { filter: drop-shadow(0 0 25px rgba(236,72,153,0.5)); }
+        }
+
+        .welcome-title {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: var(--diamond-gradient);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: diamond-shimmer 5s linear infinite;
+        }
+
+        .welcome-subtitle { color: var(--text-muted); margin-bottom: 40px; font-size: 1.1rem; }
+
+        .start-btn {
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+    
+/* ===== CHAYA MAX UPGRADE PACK ===== */
+.max-dock{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.max-dock button,.max-icon-btn{background:var(--bg-glass);border:1px solid var(--border-glass);color:var(--text-main);border-radius:12px;padding:9px 11px;cursor:pointer}.max-dock button:hover,.max-icon-btn:hover{border-color:var(--primary);color:var(--primary);box-shadow:0 0 18px var(--primary-glow)}
+.max-composer{display:flex;gap:8px;width:100%;max-width:900px;margin-top:12px}.max-composer input{flex:1;padding:13px 16px;border-radius:16px;border:1px solid var(--border-glass);background:var(--bg-secondary);color:var(--text-main);font-size:1rem}.max-composer button{width:48px;border:0;border-radius:14px;background:var(--msg-user-bg);color:#fff;cursor:pointer}
+.max-modal .modal-box{max-width:900px;max-height:88vh;overflow:auto}.max-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}.max-card{background:var(--bg-glass);border:1px solid var(--border-glass);border-radius:16px;padding:15px}.max-card h3{font-size:.95rem;margin-bottom:7px}.max-card p{font-size:.78rem;color:var(--text-muted)}.max-stat{font-size:1.45rem;font-weight:700;color:var(--primary)}
+.feature-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border:1px solid var(--border-glass);border-radius:12px;margin:6px 0;background:rgba(255,255,255,.02)}.feature-row small{color:var(--text-muted)}.switch{position:relative;width:42px;height:23px;display:inline-block}.switch input{display:none}.slider{position:absolute;inset:0;border-radius:30px;background:#444;cursor:pointer}.slider:before{content:'';position:absolute;width:17px;height:17px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}.switch input:checked+.slider{background:var(--success)}.switch input:checked+.slider:before{transform:translateX(19px)}
+.max-tabs{display:flex;gap:8px;overflow:auto;margin-bottom:15px}.max-tab{white-space:nowrap;padding:9px 13px;border-radius:12px;border:1px solid var(--border-glass);background:transparent;color:var(--text-muted);cursor:pointer}.max-tab.active{color:var(--primary);border-color:var(--primary);background:var(--bg-glass)}.max-search{width:100%;padding:12px;border-radius:12px;border:1px solid var(--border-glass);background:var(--bg-secondary);color:var(--text-main);margin-bottom:12px}.msg-tools{display:flex;gap:8px;margin-top:7px;flex-wrap:wrap}.msg-tools button{border:0;background:transparent;color:var(--text-muted);cursor:pointer}.msg-tools button:hover{color:var(--primary)}
+.max-mode-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:var(--bg-glass);border:1px solid var(--border-glass);font-size:.72rem;color:var(--text-muted)}
+@media(max-width:768px){.max-modal .modal-box{width:96%;padding:18px}.max-composer{max-width:none}.max-grid{grid-template-columns:1fr 1fr}.max-dock{justify-content:center}}
+
+    </style>
+</head>
+<body>
+
+    <!-- Background Elements -->
+    <div class="bg-elements">
+        <div class="grid-overlay"></div>
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+        <div id="dust-container"></div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- Welcome Screen -->
+    <div id="welcome-screen">
+        <i class="fa-solid fa-robot robot-logo"></i>
+        <h1 class="welcome-title">GenAI Voice Assistant</h1>
+        <p class="welcome-subtitle">Real-time AI assistant. Speak with confidence.</p>
+        <button class="btn btn-primary start-btn" onclick="app.startApp()">
+            <i class="fa-solid fa-microphone"></i> Start Assistant
+        </button>
+    </div>
+
+    <!-- Main App Container -->
+    <div class="app-container">
+        
+        <!-- Sidebar -->
+        <aside id="sidebar">
+            <div class="sidebar-header">
+                <button class="new-chat-btn" onclick="app.clearChat()">
+                    <i class="fa-solid fa-plus"></i> New Conversation
+                </button>
+                <button class="menu-btn" onclick="app.toggleSidebar()" style="width: auto; padding: 0 10px;">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="history-list" id="history-list">
+                <!-- History Items will be injected here via JS -->
+                <div style="padding: 20px; text-align: center; color: var(--text-muted); font-size: 0.9rem;">
+                    Your chat history will appear here
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="history-item" onclick="app.openSettings()">
+                    <i class="fa-solid fa-gear"></i> Settings
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            
+            <!-- Header -->
+            <header>
+                <div class="header-left">
+                    <button class="menu-btn" onclick="app.toggleSidebar()">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div class="brand-info">
+                        <span class="brand-title">TANMAY TANMAY GenAI Pro Max</span>
+                        <span class="brand-status"><div class="pulse-dot"></div> System Online</span>
+                    </div>
+                </div>
+                
+                <div class="header-actions">
+                    <button onclick="app.toggleTheme()" id="theme-btn" title="Toggle Theme">
+                        <i class="fa-solid fa-moon"></i>
+                    </button>
+                    <button onclick="app.openSettings()" title="Settings">
+                        <i class="fa-solid fa-sliders"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Chat Window -->
+            <div id="chat-window">
+                <!-- Initial AI Greeting -->
+                <div class="message-row row-ai">
+                    <div class="message-content">
+                        <div class="avatar avatar-ai"><i class="fa-solid fa-robot"></i></div>
+                        <div>
+                            <div class="bubble bubble-ai">
+                                <p>Hello! I am your <strong>AI Assistant</strong>. How can I help you?</p>
+                            </div>
+                            <div class="msg-meta">
+                                <span>Just now</span>
+                                <i class="fa-solid fa-volume-high action-icon" onclick="app.speakText('Hello! I am your AI Assistant. How can I help you?')"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Typing Indicator Container -->
+                <div class="message-row row-ai typing-container" id="typing-indicator">
+                    <div class="message-content">
+                        <div class="avatar avatar-ai"><i class="fa-solid fa-robot"></i></div>
+                        <div class="typing-bubble">
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Control Area -->
+            <div class="control-area">
+                <!-- Real Canvas Visualizer -->
+                <canvas id="audio-visualizer"></canvas>
+
+                <div class="status-display" id="status-text">Ready to listen</div>
+                
+                <div class="mic-wrapper">
+                    <button class="mic-btn" id="mic-btn" onclick="app.toggleMic()">
+                        <i class="fa-solid fa-microphone" id="mic-icon"></i>
+                    </button>
+                </div>
+                <div class="keyboard-hint">Tap the mic icon to start speaking</div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settings-modal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2>Preferences</h2>
+                <button class="close-btn" onclick="app.closeSettings()"><i class="fa-solid fa-times"></i></button>
+            </div>
+            
+            <div class="form-group">
+                <label>Language</label>
+                <select class="form-control" id="setting-lang">
+                    <option value="en-US">English (US)</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Voice Speed</label>
+                <select class="form-control" id="setting-speed">
+                    <option value="0.8">Slow (0.8x)</option>
+                    <option value="1" selected>Normal (1.0x)</option>
+                    <option value="1.2">Fast (1.2x)</option>
+                </select>
+            </div>
+
+            <button class="btn btn-primary" onclick="app.saveSettings()">Save Settings</button>
+            <button class="btn btn-danger" onclick="app.clearChat()">Delete All History</button>
+        </div>
+    </div>
+
+    <!-- ==========================================================================
+         JAVASCRIPT LOGIC (The Brains)
+         ========================================================================== -->
+    <script>
+        /**
+         * Utility Class for UI Notifications
+         */
+        class UIManager {
+            static showToast(message, type = 'info') {
+                const container = document.getElementById('toast-container');
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                
+                let icon = 'fa-info-circle';
+                if(type === 'error') icon = 'fa-exclamation-circle';
+                if(type === 'success') icon = 'fa-check-circle';
+
+                toast.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${message}</span>`;
+                container.appendChild(toast);
+
+                // Auto remove
+                setTimeout(() => {
+                    toast.classList.add('hide');
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
+            }
+
+            static formatTime() {
+                const now = new Date();
+                let hours = now.getHours();
+                let minutes = now.getMinutes();
+                const ampm = hours >= 12 ? 'PM' : 'AM';
+                hours = hours % 12;
+                hours = hours ? hours : 12; // the hour '0' should be '12'
+                minutes = minutes < 10 ? '0' + minutes : minutes;
+                return `${hours}:${minutes} ${ampm}`;
+            }
+
+            // Simple Markdown Parser for Chat Bubbles
+            static parseMarkdown(text) {
+                let html = text;
+                // Bold
+                html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                // Italic
+                html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+                // Line breaks
+                html = html.replace(/\n/g, '<br>');
+                return html;
+            }
+        }
+
+        /**
+         * Canvas Based Advanced Audio Visualizer
+         */
+        class Visualizer {
+            constructor(canvasId) {
+                this.canvas = document.getElementById(canvasId);
+                this.ctx = this.canvas.getContext('2d');
+                this.animationId = null;
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
+            }
+
+            resize() {
+                this.canvas.width = this.canvas.parentElement.clientWidth;
+                this.canvas.height = 60;
+            }
+
+            // Simulate frequency data since we can't easily hook into TTS Audio context securely across all browsers
+            startSimulation(color = '#00f0ff') {
+                this.canvas.classList.add('active');
+                let time = 0;
+                
+                const draw = () => {
+                    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                    
+                    const centerY = this.canvas.height / 2;
+                    const points = 50;
+                    const step = this.canvas.width / points;
+
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(0, centerY);
+
+                    for(let i = 0; i <= points; i++) {
+                        const x = i * step;
+                        // Math sin wave formula combining multiple frequencies for natural look
+                        const y = centerY + Math.sin(i * 0.5 + time) * 15 * Math.sin(time * 0.5) 
+                                        + Math.cos(i * 0.2 - time) * 10;
+                        
+                        this.ctx.lineTo(x, y);
+                    }
+
+                    this.ctx.strokeStyle = color;
+                    this.ctx.lineWidth = 3;
+                    this.ctx.lineCap = 'round';
+                    this.ctx.stroke();
+
+                    // Glow effect
+                    this.ctx.shadowBlur = 10;
+                    this.ctx.shadowColor = color;
+
+                    time += 0.15;
+                    this.animationId = requestAnimationFrame(draw);
+                };
+                
+                if(!this.animationId) draw();
+            }
+
+            stop() {
+                this.canvas.classList.remove('active');
+                cancelAnimationFrame(this.animationId);
+                this.animationId = null;
+                setTimeout(() => this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height), 300);
+            }
+        }
+
+        /**
+         * Main Application Class
+         */
+        class AIVoiceAssistant {
+            constructor() {
+                // DOM Elements
+                this.micBtn = document.getElementById('mic-btn');
+                this.micIcon = document.getElementById('mic-icon');
+                this.statusText = document.getElementById('status-text');
+                this.chatWindow = document.getElementById('chat-window');
+                this.typingIndicator = document.getElementById('typing-indicator');
+                this.sidebar = document.getElementById('sidebar');
+                
+                // State Variables
+                this.state = 'idle'; // idle | listening | processing | speaking
+                this.language = 'en-US';
+                this.voiceSpeed = 1.0;
+                this.isDarkTheme = true;
+                
+                // APIs provided by user
+                this.LLM_API = 'https://r-gengpt-api.vercel.app/api/chat?prompt=';
+                this.TTS_API = 'https://text2-voice-api.vercel.app/text=';
+
+                // Modules
+                this.visualizer = new Visualizer('audio-visualizer');
+                this.audioPlayer = new Audio();
+                this.recognition = null;
+
+                this.setupAudioEvents();
+            }
+
+            // 1. Initialization
+            startApp() {
+                document.getElementById('welcome-screen').classList.add('hidden');
+                this.initSpeechRecognition();
+                this.loadSettings();
+                UIManager.showToast('System Initialized Successfully', 'success');
+            }
+
+            // 2. Settings & Theme Management
+            loadSettings() {
+                const savedLang = localStorage.getItem('ai_lang');
+                if(savedLang) {
+                    this.language = savedLang;
+                    document.getElementById('setting-lang').value = savedLang;
+                }
+                
+                const savedTheme = localStorage.getItem('ai_theme');
+                if(savedTheme === 'light') this.toggleTheme(true);
+            }
+
+            openSettings() {
+                document.getElementById('settings-modal').classList.add('active');
+                if(window.innerWidth <= 768) this.toggleSidebar(); // close sidebar on mobile
+            }
+
+            closeSettings() {
+                document.getElementById('settings-modal').classList.remove('active');
+            }
+
+            saveSettings() {
+                this.language = document.getElementById('setting-lang').value;
+                this.voiceSpeed = parseFloat(document.getElementById('setting-speed').value);
+                localStorage.setItem('ai_lang', this.language);
+                
+                // Update Recognition language if exists
+                if(this.recognition) this.recognition.lang = this.language;
+                
+                this.closeSettings();
+                UIManager.showToast('Settings Saved', 'success');
+            }
+
+            toggleTheme(forceLight = false) {
+                const root = document.documentElement;
+                const icon = document.querySelector('#theme-btn i');
+                
+                if(forceLight || this.isDarkTheme) {
+                    root.setAttribute('data-theme', 'light');
+                    icon.className = 'fa-solid fa-sun';
+                    this.isDarkTheme = false;
+                    localStorage.setItem('ai_theme', 'light');
+                } else {
+                    root.setAttribute('data-theme', 'dark');
+                    icon.className = 'fa-solid fa-moon';
+                    this.isDarkTheme = true;
+                    localStorage.setItem('ai_theme', 'dark');
+                }
+            }
+
+            toggleSidebar() {
+                this.sidebar.classList.toggle('open');
+            }
+
+            // 3. UI State Management
+            updateState(newState) {
+                this.state = newState;
+                
+                // Reset Classes
+                this.micBtn.className = 'mic-btn';
+                this.micIcon.className = 'fa-solid';
+
+                switch(newState) {
+                    case 'idle':
+                        this.micBtn.classList.add('idle');
+                        this.micIcon.classList.add('fa-microphone');
+                        this.statusText.innerText = "Tap mic to speak";
+                        this.statusText.style.color = "var(--text-muted)";
+                        this.visualizer.stop();
+                        break;
+                    case 'listening':
+                        this.micBtn.classList.add('listening');
+                        this.micIcon.classList.add('fa-ear-listen');
+                        this.statusText.innerText = "Listening...";
+                        this.statusText.style.color = "var(--danger)";
+                        this.visualizer.startSimulation('#ff2e63');
+                        break;
+                    case 'processing':
+                        this.micBtn.classList.add('processing');
+                        this.micIcon.classList.add('fa-circle-notch', 'fa-spin');
+                        this.statusText.innerText = "AI is thinking...";
+                        this.statusText.style.color = "var(--warning)";
+                        this.visualizer.stop();
+                        break;
+                    case 'speaking':
+                        this.micBtn.classList.add('speaking');
+                        this.micIcon.classList.add('fa-volume-high');
+                        this.statusText.innerText = "AI is speaking...";
+                        this.statusText.style.color = "var(--primary)";
+                        this.visualizer.startSimulation(this.isDarkTheme ? '#00f0ff' : '#0ea5e9');
+                        break;
+                }
+            }
+
+            // 4. Speech Recognition Logic
+            // --- এই অংশটুকু রিপ্লেস করুন ---
+initSpeechRecognition() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        UIManager.showToast('আপনার ব্রাউজারে ভয়েস সাপোর্ট নেই। Chrome ব্যবহার করুন।', 'error');
+        return;
+    }
+
+    this.recognition = new SpeechRecognition();
+    this.recognition.continuous = false; // একবারে একটি বাক্য শুনবে
+    this.recognition.interimResults = false; 
+    this.recognition.lang = this.language; // Set language
+
+    this.recognition.onstart = () => {
+        console.log("Recognition Started...");
+        this.updateState('listening');
+    };
+
+    this.recognition.onresult = (event) => {
+        console.log("Result received");
+        const transcript = event.results[0][0].transcript;
+        console.log("User Said: ", transcript);
+        
+        if (transcript.trim() !== "") {
+            this.processUserInput(transcript); // Send to AI
+        } else {
+            this.updateState('idle');
+        }
+    };
+
+    this.recognition.onerror = (event) => {
+        console.error("Speech Error Type: ", event.error);
+        this.updateState('idle');
+        
+        if(event.error === 'no-speech') {
+            UIManager.showToast('No speech detected. Please try again.', 'warning');
+        } else if(event.error === 'not-allowed') {
+            UIManager.showToast('Please allow microphone access.', 'error');
+        } else {
+            UIManager.showToast('Voice error: ' + event.error, 'error');
+        }
+    };
+
+    this.recognition.onend = () => {
+        console.log("Recognition Ended.");
+        if (this.state === 'listening') {
+            this.updateState('idle');
+        }
+    };
+}
+
+// --- মাইক্রোফোন বাটন কন্ট্রোল ফিক্স ---
+toggleMic() {
+    if (this.state === 'processing') return;
+
+    if (this.state === 'speaking') {
+        this.audioPlayer.pause();
+        this.updateState('idle');
+        return;
+    }
+
+    if (this.state === 'listening') {
+        this.recognition.stop(); // ইউজার চাইলে ম্যানুয়ালি স্টপ করতে পারবে
+    } else {
+        try {
+            this.recognition.lang = this.language; // Confirm language
+            this.recognition.start();
+        } catch (e) {
+            console.error("Mic Start Error: ", e);
+            this.recognition.stop();
+        }
+    }
+}
+
+            // 5. Chat UI Logic
+            addMessageToUI(text, sender) {
+                const time = UIManager.formatTime();
+                const isUser = sender === 'user';
+                
+                const row = document.createElement('div');
+                row.className = `message-row ${isUser ? 'row-user' : 'row-ai'}`;
+                
+                // Formatted HTML
+                const formattedText = UIManager.parseMarkdown(text);
+                
+                // Safe string for TTS button
+                const safeStr = text.replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, ' ');
+
+                let html = `
+                    <div class="message-content">
+                        <div class="avatar ${isUser ? 'avatar-user' : 'avatar-ai'}">
+                            <i class="fa-solid ${isUser ? 'fa-user' : 'fa-robot'}"></i>
+                        </div>
+                        <div>
+                            <div class="bubble ${isUser ? 'bubble-user' : 'bubble-ai'}">
+                                <p>${formattedText}</p>
+                            </div>
+                            <div class="msg-meta">
+                                <span>${time}</span>
+                                ${!isUser ? `<i class="fa-solid fa-volume-high action-icon" onclick="app.speakText('${safeStr}')" title="Listen again"></i>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                row.innerHTML = html;
+                
+                // Insert before typing indicator
+                this.chatWindow.insertBefore(row, this.typingIndicator);
+                this.scrollToBottom();
+            }
+
+            scrollToBottom() {
+                this.chatWindow.scrollTo({
+                    top: this.chatWindow.scrollHeight,
+                    behavior: 'smooth'
+                });
+            }
+
+            showTyping() {
+                this.typingIndicator.style.display = 'flex';
+                this.scrollToBottom();
+            }
+
+            hideTyping() {
+                this.typingIndicator.style.display = 'none';
+            }
+
+            // 6. Core Business Logic (Fetch APIs)
+            async processUserInput(text) {
+    this.addMessageToUI(text, 'user'); // Show user message in chat
+    this.updateState('processing');
+    this.showTyping();
+
+    try {
+        // এপিআই কল করার সময় 'cache: no-store' যোগ করা হয়েছে যাতে লেটেস্ট উত্তর আসে
+        const response = await fetch(`${this.LLM_API}${encodeURIComponent(text)}`, {
+            method: 'GET',
+            cache: 'no-store'
+        });
+
+        if (!response.ok) throw new Error('সার্ভারে সমস্যা হচ্ছে');
+
+        const aiResponseText = await response.text();
+
+        this.hideTyping();
+        if (aiResponseText) {
+            this.addMessageToUI(aiResponseText, 'ai');
+            this.speakText(aiResponseText);
+        } else {
+            throw new Error('ফাঁকা উত্তর এসেছে');
+        }
+
+    } catch (error) {
+        console.error("Fetch Error:", error);
+        this.hideTyping();
+        this.updateState('idle');
+        this.addMessageToUI("Sorry, I cannot respond right now. Please try again.", 'ai');
+        UIManager.showToast('Server error!', 'error');
+    }
+}
+
+            // 7. Text-To-Speech (TTS) Logic
+            setupAudioEvents() {
+                this.audioPlayer.onended = () => {
+                    this.updateState('idle');
+                };
+                
+                this.audioPlayer.onerror = (e) => {
+                    console.warn("Custom TTS API Failed. Falling back to native Web Speech API.");
+                    // The error handling will trigger the fallback inside speakText
+                };
+            }
+
+            speakText(rawText) {
+                // Clean text for TTS (Remove markdown symbols)
+                const cleanText = rawText.replace(/[*#_`~]/g, '').trim();
+                
+                this.updateState('speaking');
+
+                // Generate URL based on provided API
+                const ttsUrl = `${this.TTS_API}${encodeURIComponent(cleanText)}`;
+                
+                this.audioPlayer.src = ttsUrl;
+                this.audioPlayer.playbackRate = this.voiceSpeed;
+                
+                // Play audio, catch error if URL is broken or network fails
+                this.audioPlayer.play().catch(error => {
+                    console.log("Audio Playback error, initializing fallback...", error);
+                    this.nativeTTSFallback(cleanText);
+                });
+            }
+
+            // Fallback Engine: If external API goes down
+            nativeTTSFallback(text) {
+                if (!window.speechSynthesis) {
+                    this.updateState('idle');
+                    UIManager.showToast('TTS not supported', 'error');
+                    return;
+                }
+
+                // Cancel any ongoing speech
+                window.speechSynthesis.cancel();
+
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = this.language;
+                utterance.rate = this.voiceSpeed;
+                utterance.pitch = 1;
+
+                utterance.onstart = () => this.updateState('speaking');
+                utterance.onend = () => this.updateState('idle');
+                utterance.onerror = (e) => {
+                    console.error("Native TTS Error", e);
+                    this.updateState('idle');
+                };
+
+                window.speechSynthesis.speak(utterance);
+            }
+
+            // 8. Utility Functions
+            clearChat() {
+                // Remove all rows except the first generic greeting and typing indicator
+                const rows = Array.from(this.chatWindow.querySelectorAll('.message-row'));
+                rows.forEach(row => {
+                    if (row !== this.typingIndicator && !row.innerHTML.includes('I am your <strong>AI Assistant</strong>')) {
+                        row.remove();
+                    }
+                });
+                
+                this.closeSettings();
+                if(window.innerWidth <= 768) this.sidebar.classList.remove('open');
+                
+                UIManager.showToast('Conversation History Cleared', 'success');
+            }
+        }
+
+        // ==========================================================================
+        // PREMIUM TOUCH RIPPLE + SPARK EFFECT (fires on any tap/click, anywhere)
+        // ==========================================================================
+        function spawnRipple(x, y) {
+            const ripple = document.createElement('div');
+            ripple.className = 'ripple-el';
+            const size = 90;
+            ripple.style.width = size + 'px';
+            ripple.style.height = size + 'px';
+            ripple.style.left = x + 'px';
+            ripple.style.top = y + 'px';
+            document.body.appendChild(ripple);
+            ripple.addEventListener('animationend', () => ripple.remove());
+
+            // Diamond sparks flying outward
+            const sparkCount = 6;
+            for (let i = 0; i < sparkCount; i++) {
+                const spark = document.createElement('div');
+                spark.className = 'ripple-spark';
+                const angle = (Math.PI * 2 * i) / sparkCount + Math.random() * 0.5;
+                const distance = 30 + Math.random() * 30;
+                spark.style.setProperty('--sx', Math.cos(angle) * distance + 'px');
+                spark.style.setProperty('--sy', Math.sin(angle) * distance + 'px');
+                spark.style.left = x + 'px';
+                spark.style.top = y + 'px';
+                document.body.appendChild(spark);
+                spark.addEventListener('animationend', () => spark.remove());
+            }
+        }
+
+        function initGlobalTouchFX() {
+            const handler = (e) => {
+                const point = e.touches ? e.touches[0] : e;
+                spawnRipple(point.clientX, point.clientY);
+            };
+            document.addEventListener('click', handler);
+            document.addEventListener('touchstart', handler, { passive: true });
+        }
+
+        // ==========================================================================
+        // DIAMOND DUST BACKGROUND PARTICLES
+        // ==========================================================================
+        function initDustParticles() {
+            const container = document.getElementById('dust-container');
+            if (!container) return;
+            const total = 35;
+            for (let i = 0; i < total; i++) {
+                const dust = document.createElement('div');
+                dust.className = 'dust';
+                const left = Math.random() * 100;
+                const duration = 8 + Math.random() * 12;
+                const delay = Math.random() * 15;
+                const size = 2 + Math.random() * 3;
+                dust.style.left = left + 'vw';
+                dust.style.bottom = '-10px';
+                dust.style.width = size + 'px';
+                dust.style.height = size + 'px';
+                dust.style.animationDuration = duration + 's';
+                dust.style.animationDelay = delay + 's';
+                container.appendChild(dust);
+            }
+        }
+
+        // ==========================================================================
+        // APP INITIALIZATION
+        // ==========================================================================
+        const app = new AIVoiceAssistant();
+        initGlobalTouchFX();
+        initDustParticles();
+        
+        // Handle Keyboard shortcuts (Spacebar to toggle mic if not typing)
+        document.addEventListener('keydown', (e) => {
+            if(e.code === 'Space' && e.target === document.body && document.getElementById('welcome-screen').classList.contains('hidden')) {
+                e.preventDefault();
+                app.toggleMic();
+            }
+        });
+
+    </script>
+
+<!-- ===== CHAYA MAX DYNAMIC UI ===== -->
+<div id="max-modal" class="modal-overlay max-modal">
+ <div class="modal-box">
+  <div class="modal-header"><h2 id="max-modal-title">♾️ Chaya MAX</h2><button class="close-btn" onclick="maxUI.close()"><i class="fa-solid fa-times"></i></button></div>
+  <div id="max-modal-body"></div>
+ </div>
+</div>
+<div id="max-admin-modal" class="modal-overlay max-modal">
+ <div class="modal-box">
+  <div class="modal-header"><h2>👑 Chaya MAX Admin</h2><button class="close-btn" onclick="maxAdmin.close()"><i class="fa-solid fa-times"></i></button></div>
+  <div id="max-admin-body"></div>
+ </div>
+</div>
+
+<script>
+/* ===== CHAYA MAX ENGINE ===== */
+const MAX_FEATURES = [
+['Smart Chat','chat'],['Voice Input','voice'],['Text-to-Speech','voice'],['AI Assistant','ai'],['Context Engine','ai'],['Local Storage','data'],['Chat History','chat'],['Chat Search','chat'],['Message Editing','chat'],['Copy Message','chat'],['Regenerate Reply','chat'],['Like / Dislike','chat'],['Pin Message','chat'],['Favorite Chat','chat'],['Delete Message','chat'],['Clear Chat','chat'],['Share Chat','chat'],['Export Chat','data'],['Retry Response','ai'],['Push-to-Talk','voice'],['Multi-language Voice','voice'],['Volume Control','voice'],['Speech Speed','voice'],['Voice Presets','voice'],['Stop Voice','voice'],['Auto Voice Reply','voice'],['Pitch Control','voice'],['Voice Commands','voice'],['Voice Visualizer','voice'],['Dynamic Plugins','plugins'],['Feature Packs','plugins'],['Module Loader','plugins'],['Hot Reload','plugins'],['Feature Manager','plugins'],['Feature ON/OFF','plugins'],['Feature Search','plugins'],['Feature Tags','plugins'],['Feature Categories','plugins'],['Feature Dependencies','plugins'],['Feature Permissions','security'],['Feature Analytics','analytics'],['Module Status','plugins'],['Experimental Features','plugins'],['Developer Console','developer'],['Diagnostics','system'],['Auto Recovery','system'],['API Health Monitor','system'],['Lazy Loading','performance'],['Scalable Feature Registry','core'],['Red Theme','theme'],['Yellow Theme','theme'],['Orange Theme','theme'],['Gradient Theme','theme'],['Dark Mode','theme'],['Light Mode','theme'],['Auto Theme','theme'],['Glow Effects','theme'],['Diamond Effects','theme'],['Animated Background','theme'],['Coding Mode','mode'],['Study Mode','mode'],['Writing Mode','mode'],['Translation Mode','mode'],['Research Mode','mode'],['Calculator Mode','mode'],['Creative Mode','mode'],['Summarizer Mode','mode'],['Teacher Mode','mode'],['Focus Mode','mode'],['File Attachments','files'],['Image Support','files'],['Document Support','files'],['Audio Support','files'],['Video Support','files'],['Attachment Manager','files'],['File Search','files'],['File Tags','files'],['File Collections','files'],['File Backup','data'],['Memory Mode','memory'],['Memory Profiles','memory'],['Memory Search','memory'],['Chat Backup','data'],['Chat Restore','data'],['JSON Export','data'],['TXT Export','data'],['Markdown Export','data'],['HTML Export','data'],['Auto Cleanup','data'],['Multi-API Router','api'],['API Failover','api'],['Request Queue','performance'],['Auto Retry','api'],['Request Timeout','api'],['Response Cache','performance'],['Offline Mode','network'],['Network Detection','network'],['Performance Mode','performance'],['Battery Saver','performance'],['Privacy Mode','security'],['Session Lock','security'],['PIN Lock','security'],['Data Cleanup','data'],['Security Logs','security'],['Safe Mode','security'],['Recovery Mode','system'],['Security Diagnostics','security'],['Admin Panel','admin'],['User Manager','admin'],['Admin Controls','admin'],['Admin Dashboard','admin'],['Admin Activity Logs','admin'],['Admin API Manager','admin'],['Admin Feature Control','admin'],['Admin Backup','admin'],['Admin Reset','admin'],['Usage Statistics','analytics'],['Response-Time Tracking','analytics'],['Performance Dashboard','analytics'],['Mobile UI','ui'],['Desktop UI','ui'],['Fullscreen','ui'],['Compact Mode','ui'],['Floating Controls','ui'],['Scroll-to-Top','ui'],['Jump-to-Latest','ui'],['Notifications','ui'],['Keyboard Shortcuts','ui'],['Chaya MAX Dynamic Core','core'],
+['Conversation Folders','chat'],['Chat Rename','chat'],['Chat Duplicate','chat'],['Message Reactions','chat'],['Message Bookmarks','chat'],['Prompt Templates','ai'],['Quick Prompts','ai'],['Response Streaming','ai'],['AI Model Selector','ai'],['Temperature Control','ai'],['System Prompt Editor','ai'],['Conversation Summary','ai'],['Context Window Meter','ai'],['Smart Auto Title','ai'],['Voice Language Auto Detect','voice'],['Voice Queue','voice'],['Hands-Free Mode','voice'],['Noise Gate','voice'],['Wake Phrase UI','voice'],['Plugin Marketplace UI','plugins'],['Plugin Permissions','security'],['Plugin Health Score','analytics'],['Feature Changelog','system'],['Command Palette','ui'],['Quick Actions','ui'],['Focus Timer','mode'],['Reading Mode','mode'],['Brainstorm Mode','mode'],['Interview Mode','mode'],['Email Mode','mode'],['Code Explain Mode','mode'],['JSON Formatter Mode','mode'],['Markdown Preview','ui'],['Drag & Drop Files','files'],['Clipboard Import','files'],['Download Manager','files'],['Storage Usage Meter','data'],['Import Chat','data'],['Encrypted Local Vault UI','security'],['Session Timeout','security'],['Audit Trail','security'],['Error Reporter','system'],['System Info','system'],['Latency Monitor','analytics'],['Cache Inspector','developer'],['API Request Inspector','developer'],['Feature Dependency Graph','developer'],['Keyboard Command Help','ui'],['Responsive Layout Engine','ui'],['Reduced Motion','accessibility'],['High Contrast','accessibility'],['Screen Reader Labels','accessibility'],['Font Size Control','accessibility'],['Haptic Feedback','mobile'],['Mobile Safe Area','mobile'],['Installable PWA UI','mobile'],['Connection Banner','network'],['Offline Drafts','network'],['Auto Save Draft','data'],['Undo / Redo','chat'],['Session Restore','data'],['Welcome Customizer','ui'],['Brand Customizer','ui'],['Admin Theme','admin'],['Admin Notifications','admin'],['Admin Maintenance Mode','admin'],['Admin Feature Presets','admin'],['Admin Export Reports','admin'],['Admin System Reset','admin'],['Live Activity Feed','analytics'],['User Growth Chart','analytics'],['API Cost Meter','analytics'],['Request Counter','analytics'],['Storage Health','analytics'],['Core Self Test','system'],['One-Tap Recovery','system'],['MAX Safe Boot','system'],['MAX Performance Tuner','performance'],['MAX Feature Search','core'],['MAX Command Center','core']
+].map((x,i)=>({id:i+1,name:x[0],cat:x[1]}));
+
+const MAX_CATS={chat:'💬 Chat',voice:'🎤 Voice',ai:'🤖 AI',data:'💾 Data',plugins:'🧩 Plugins',security:'🛡️ Security',analytics:'📊 Analytics',system:'⚙️ System',performance:'⚡ Performance',theme:'🎨 Themes',mode:'🎯 Modes',files:'📁 Files',api:'🔌 API',network:'📶 Network',admin:'👑 Admin',ui:'🖥️ UI',core:'♾️ Core',developer:'🛠️ Developer',accessibility:'♿ Accessibility',mobile:'📱 Mobile',memory:'🧠 Memory'};
+const MAX_STORE='chaya_max_state_v2';
+const MAX_STATS='chaya_max_stats_v2';
+const maxState=(()=>{try{return JSON.parse(localStorage.getItem(MAX_STORE))||{enabled:{},theme:'dark',mode:'Smart Chat',memories:[],pinned:[]}}catch{return {enabled:{},theme:'dark',mode:'Smart Chat',memories:[],pinned:[]}}})();
+const maxStats=(()=>{try{return JSON.parse(localStorage.getItem(MAX_STATS))||{messages:0,requests:0,errors:0,started:Date.now(),lastLatency:0}}catch{return {messages:0,requests:0,errors:0,started:Date.now(),lastLatency:0}}})();
+MAX_FEATURES.forEach(f=>{if(maxState.enabled[f.id]===undefined)maxState.enabled[f.id]=true});
+function maxSave(){localStorage.setItem(MAX_STORE,JSON.stringify(maxState));localStorage.setItem(MAX_STATS,JSON.stringify(maxStats))}
+function maxEscape(v){return String(v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function maxText(){return Array.from(document.querySelectorAll('#chat-window .bubble')).map(x=>x.innerText).join('\n')}
+function maxDownload(name,data,type='text/plain'){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+
+const maxUI={
+ open(title,body){document.getElementById('max-modal-title').innerHTML=title;document.getElementById('max-modal-body').innerHTML=body;document.getElementById('max-modal').classList.add('active')},
+ close(){document.getElementById('max-modal').classList.remove('active')},
+ settings(){this.open('⚙️ MAX Settings',`<div class="max-grid"><div class="max-card"><h3>🎨 Theme</h3><select id="max-theme" class="form-control"><option value="dark">🌙 Dark</option><option value="light">☀️ Light</option><option value="red">🔴 Red</option><option value="yellow">🟡 Yellow</option><option value="orange">🟠 Orange</option><option value="gradient">🌈 Gradient</option></select></div><div class="max-card"><h3>🎯 Mode</h3><select id="max-mode" class="form-control">${['Smart Chat','Coding Mode','Study Mode','Writing Mode','Translation Mode','Research Mode','Calculator Mode','Creative Mode','Summarizer Mode','Teacher Mode','Focus Mode','Reading Mode','Brainstorm Mode','Interview Mode','Email Mode','Code Explain Mode'].map(x=>`<option>${x}</option>`).join('')}</select></div><div class="max-card"><h3>♿ Accessibility</h3><button class="btn btn-primary" onclick="maxUI.toggleReduced()">Toggle Reduced Motion</button></div><div class="max-card"><h3>📱 Display</h3><button class="btn btn-primary" onclick="document.documentElement.requestFullscreen?.()">Fullscreen</button></div></div><button class="btn btn-primary" onclick="maxUI.saveSettings()">Save MAX Settings</button>`);document.getElementById('max-theme').value=maxState.theme||'dark';document.getElementById('max-mode').value=maxState.mode||'Smart Chat'},
+ saveSettings(){const t=document.getElementById('max-theme').value;maxState.theme=t;maxState.mode=document.getElementById('max-mode').value;document.documentElement.dataset.theme=t==='dark'||t==='red'||t==='yellow'||t==='orange'||t==='gradient'?'dark':t;document.documentElement.style.setProperty('--primary',t==='red'?'#ff304f':t==='yellow'?'#ffd400':t==='orange'?'#ff8a00':'#00f0ff');if(t==='gradient')document.documentElement.style.setProperty('--primary','#a855f7');maxSave();this.close();UIManager.showToast('MAX settings saved','success')},
+ toggleReduced(){document.body.classList.toggle('max-reduced-motion');if(document.body.classList.contains('max-reduced-motion'))document.body.style.setProperty('--transition-fast','0s');else document.body.style.removeProperty('--transition-fast')},
+ features(){const rows=MAX_FEATURES.map(f=>`<div class="feature-row"><div><b>${maxEscape(f.name)}</b><br><small>${MAX_CATS[f.cat]||f.cat} · #${String(f.id).padStart(3,'0')}</small></div><label class="switch"><input type="checkbox" ${maxState.enabled[f.id]?'checked':''} onchange="maxState.enabled[${f.id}]=this.checked;maxSave()"><span class="slider"></span></label></div>`).join('');this.open('🧩 Feature Center',`<input class="max-search" placeholder="Search ${MAX_FEATURES.length}+ features..." oninput="maxUI.filterFeatures(this.value)"><div id="max-feature-list">${rows}</div>`);},
+ filterFeatures(q){const list=document.getElementById('max-feature-list');if(!list)return;list.innerHTML=MAX_FEATURES.filter(f=>f.name.toLowerCase().includes(q.toLowerCase())||f.cat.includes(q.toLowerCase())).map(f=>`<div class="feature-row"><div><b>${maxEscape(f.name)}</b><br><small>${MAX_CATS[f.cat]||f.cat} · #${String(f.id).padStart(3,'0')}</small></div><label class="switch"><input type="checkbox" ${maxState.enabled[f.id]?'checked':''} onchange="maxState.enabled[${f.id}]=this.checked;maxSave()"><span class="slider"></span></label></div>`).join('')||'<p>No matching features.</p>'},
+ exportData(){const data={version:'Chaya MAX v2',exportedAt:new Date().toISOString(),features:MAX_FEATURES,state:maxState,stats:maxStats,chat:maxText()};maxDownload('chaya-max-backup.json',JSON.stringify(data,null,2),'application/json');UIManager.showToast('MAX backup exported','success')},
+ importData(){const input=document.createElement('input');input.type='file';input.accept='.json';input.onchange=()=>{const file=input.files[0];if(!file)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(d.state){Object.assign(maxState,d.state);maxSave();location.reload()}else throw 0}catch{UIManager.showToast('Invalid MAX backup','error')}};r.readAsText(file)};input.click()},
+ modes(){this.open('🎯 AI Modes',`<div class="max-grid">${['Smart Chat','Coding Mode','Study Mode','Writing Mode','Translation Mode','Research Mode','Calculator Mode','Creative Mode','Summarizer Mode','Teacher Mode','Focus Mode','Reading Mode','Brainstorm Mode','Interview Mode','Email Mode','Code Explain Mode','JSON Formatter Mode'].map(m=>`<button class="btn btn-primary" onclick="maxState.mode='${m}';maxSave();UIManager.showToast('${m} enabled','success');maxUI.close()">${m}</button>`).join('')}</div>`)},
+ data(){this.open('💾 Data Center',`<div class="max-grid"><div class="max-card"><h3>📤 Export</h3><button class="btn btn-primary" onclick="maxUI.exportData()">JSON Backup</button><button class="btn btn-primary" onclick="maxDownload('chaya-chat.txt',maxText())">TXT</button><button class="btn btn-primary" onclick="maxDownload('chaya-chat.md',maxText())">Markdown</button><button class="btn btn-primary" onclick="maxDownload('chaya-chat.html','<!doctype html><html><body>'+maxEscape(maxText()).replace(/\n/g,'<br>')+'
+
+<style>
+#prod-auth{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;background:rgba(5,7,12,.97);backdrop-filter:blur(18px)}
+#prod-auth.hidden{display:none}.prod-card{width:min(430px,92vw);padding:28px;border:1px solid rgba(255,255,255,.14);border-radius:24px;background:rgba(20,24,34,.98);box-shadow:0 24px 80px rgba(0,0,0,.5)}
+.prod-card h2{margin:0 0 8px}.prod-card p{color:#9aa4b2}.prod-card input{width:100%;padding:13px;margin:6px 0;box-sizing:border-box;border-radius:12px;border:1px solid #303746;background:#0e121a;color:#fff}
+.prod-card button{width:100%;padding:13px;margin-top:8px;border:0;border-radius:12px;font-weight:700;cursor:pointer}.prod-primary{background:#fff;color:#111}.prod-secondary{background:#292f3b;color:#fff}
+#prod-auth-msg{min-height:20px;margin-top:10px;color:#ffb4b4;font-size:13px}
+#prod-userbar{position:fixed;right:14px;top:14px;z-index:9000;display:none;padding:9px 12px;border:1px solid rgba(255,255,255,.12);border-radius:12px;background:rgba(15,18,25,.86);backdrop-filter:blur(12px);font-size:12px}
+#prod-admin{position:fixed;inset:0;z-index:100001;display:none;overflow:auto;background:#070a10;padding:28px;box-sizing:border-box}
+#prod-admin.open{display:block}.prod-admin-wrap{max-width:1100px;margin:auto}.prod-admin-head{display:flex;justify-content:space-between;align-items:center}.prod-admin-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-top:20px}
+.prod-stat{padding:18px;border:1px solid #202735;border-radius:18px;background:#101621}.prod-stat b{font-size:24px}.prod-stat span{display:block;color:#8994a5;font-size:12px;margin-top:5px}
+.prod-table{width:100%;border-collapse:collapse;margin-top:20px}.prod-table th,.prod-table td{padding:10px;border-bottom:1px solid #202735;text-align:left;font-size:13px}
+.prod-close{padding:10px 14px;border:0;border-radius:10px;cursor:pointer}
+#prod-limit{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:9500;display:none;padding:8px 13px;border-radius:12px;background:rgba(15,18,25,.9);border:1px solid #293140;color:#fff;font-size:12px}
+</style>
+
+<div id="prod-auth">
+  <div class="prod-card">
+    <h2>TANMAY TANMAY GenAI Pro Max</h2>
+    <p>Secure account access</p>
+    <input id="prod-name" placeholder="Name" autocomplete="name">
+    <input id="prod-email" placeholder="Email" type="email" autocomplete="email">
+    <input id="prod-password" placeholder="Password" type="password" autocomplete="current-password">
+    <button class="prod-primary" onclick="PROD_AUTH.login()">Login</button>
+    <button class="prod-secondary" onclick="PROD_AUTH.signup()">Create Account</button>
+    <div id="prod-auth-msg"></div>
+  </div>
+</div>
+<div id="prod-userbar">
+  <span id="prod-user-label"></span>
+  <button id="prod-admin-btn" style="display:none;background:none;border:0;color:#fff;cursor:pointer" onclick="PROD_ADMIN.open()">👑 Admin</button>
+  <button onclick="PROD_AUTH.logout()" style="background:none;border:0;color:#fff;cursor:pointer">Logout</button>
+</div>
+<div id="prod-limit">⏱️ Session remaining: <span id="prod-limit-time">02:00:00</span></div>
+
+<div id="prod-admin">
+  <div class="prod-admin-wrap">
+    <div class="prod-admin-head"><div><h1>👑 TANMAY Admin Panel</h1><p>Production administration</p></div><button class="prod-close" onclick="PROD_ADMIN.close()">Close</button></div>
+    <div class="prod-admin-grid">
+      <div class="prod-stat"><b id="p-users">—</b><span>Total Users</span></div>
+      <div class="prod-stat"><b id="p-active">—</b><span>Active Sessions</span></div>
+      <div class="prod-stat"><b id="p-chats">—</b><span>Chats</span></div>
+      <div class="prod-stat"><b id="p-requests">—</b><span>API Requests</span></div>
+    </div>
+    <div class="prod-stat" style="margin-top:20px">
+      <h3>Users</h3>
+      <table class="prod-table"><thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Created</th><th>Active</th></tr></thead><tbody id="p-user-list"></tbody></table>
+    </div>
+  </div>
+</div>
+
+<script>
+const API_BASE = window.CHAYA_API_BASE || '';
+const PROD_AUTH = (() => {
+  let timer=null;
+  const msg=m=>document.getElementById('prod-auth-msg').textContent=m;
+  async function api(path, options={}) {
+    const r=await fetch(API_BASE+path,{credentials:'include',headers:{'Content-Type':'application/json',...(options.headers||{})},...options});
+    let data={}; try{data=await r.json()}catch{}
+    if(!r.ok) throw new Error(data.detail||data.message||'Request failed');
+    return data;
+  }
+  async function boot(){
+    try{const d=await api('/api/auth/me'); enter(d.user,d.session)}catch{document.getElementById('prod-auth').classList.remove('hidden')}
+  }
+  function enter(user,session){
+    document.getElementById('prod-auth').classList.add('hidden');
+    document.getElementById('prod-userbar').style.display='block';
+    document.getElementById('prod-user-label').textContent=`${user.name} (${user.role})`;
+    const ab=document.getElementById('prod-admin-btn'); ab.style.display=user.role==='admin'?'inline-block':'none';
+    if(user.role!=='admin') startLimit(session.expires_at); else document.getElementById('prod-limit').style.display='none';
+  }
+  function startLimit(expires){
+    const end=new Date(expires).getTime(); const box=document.getElementById('prod-limit'); box.style.display='block';
+    function tick(){let left=Math.max(0,end-Date.now()); let s=Math.floor(left/1000),h=Math.floor(s/3600),m=Math.floor((s%3600)/60),x=s%60;
+      document.getElementById('prod-limit-time').textContent=[h,m,x].map(v=>String(v).padStart(2,'0')).join(':'); if(left<=0){clearInterval(timer);location.reload()}}
+    tick();timer=setInterval(tick,1000);
+  }
+  async function login(){try{const d=await api('/api/auth/login',{method:'POST',body:JSON.stringify({email:document.getElementById('prod-email').value.trim(),password:document.getElementById('prod-password').value})});enter(d.user,d.session)}catch(e){msg(e.message)}}
+  async function signup(){try{const d=await api('/api/auth/register',{method:'POST',body:JSON.stringify({name:document.getElementById('prod-name').value.trim(),email:document.getElementById('prod-email').value.trim(),password:document.getElementById('prod-password').value})});enter(d.user,d.session)}catch(e){msg(e.message)}}
+  async function logout(){try{await api('/api/auth/logout',{method:'POST'})}finally{location.reload()}}
+  window.addEventListener('load',boot);
+  return {login,signup,logout,api};
+})();
+const PROD_ADMIN=(()=>({
+  open:async()=>{try{await PROD_AUTH.api('/api/admin/me');document.getElementById('prod-admin').classList.add('open');await PROD_ADMIN.refresh()}catch(e){alert(e.message)}},
+  close:()=>document.getElementById('prod-admin').classList.remove('open'),
+  refresh:async()=>{const d=await PROD_AUTH.api('/api/admin/dashboard');document.getElementById('p-users').textContent=d.stats.users;document.getElementById('p-active').textContent=d.stats.active_sessions;document.getElementById('p-chats').textContent=d.stats.chats;document.getElementById('p-requests').textContent=d.stats.api_requests;document.getElementById('p-user-list').innerHTML=d.users.map(u=>`<tr><td>${u.id}</td><td>${u.name}</td><td>${u.email}</td><td>${u.role}</td><td>${new Date(u.created_at).toLocaleString()}</td><td>${u.active_sessions}</td></tr>`).join('')}
+}))();
+</script>
+
+
+<!-- ============================================================
+     CHAYA MAX 2.0 - Voice + Admin + UX Upgrade
+     ============================================================ -->
+<style>
+#max-voice-panel{position:fixed;right:18px;bottom:84px;width:min(360px,calc(100vw - 36px));z-index:100050;display:none;padding:18px;border:1px solid rgba(255,255,255,.14);border-radius:20px;background:rgba(12,16,24,.96);backdrop-filter:blur(18px);box-shadow:0 20px 70px rgba(0,0,0,.45)}
+#max-voice-panel.open{display:block}.max-v-row{display:grid;gap:7px;margin:10px 0}.max-v-row label{font-size:12px;color:#9aa4b2}.max-v-row select,.max-v-row input{width:100%}
+#max-voice-panel button{padding:9px 12px;border:1px solid #303746;border-radius:10px;background:#171d28;color:#fff;cursor:pointer}
+.max-v-actions{display:flex;gap:8px;flex-wrap:wrap}.max-v-actions button{flex:1}
+#prod-admin.open{z-index:100060}
+.prod-admin-toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+.prod-admin-toolbar input{flex:1;min-width:180px;padding:11px;border-radius:10px;border:1px solid #303746;background:#0e121a;color:#fff}
+.prod-admin-toolbar button{padding:11px 14px;border:0;border-radius:10px;cursor:pointer}
+.prod-user-actions{display:flex;gap:5px;flex-wrap:wrap}.prod-user-actions button{padding:6px 8px;border:1px solid #303746;border-radius:7px;background:#171d28;color:#fff;cursor:pointer}
+.prod-user-actions .danger{background:#36191d}
+.prod-badge{display:inline-block;padding:3px 7px;border-radius:999px;font-size:11px;background:#202938}
+</style>
+
+<div id="max-voice-panel" aria-label="Voice settings">
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <h3 style="margin:0">🔊 Voice Studio</h3>
+    <button onclick="MAX_VOICE.close()">✕</button>
+  </div>
+  <div class="max-v-row"><label>Voice</label><select id="max-voice-select"></select></div>
+  <div class="max-v-row"><label>Speed: <span id="max-rate-val">1.0</span></label><input id="max-rate" type="range" min=".5" max="2" step=".05" value="1"></div>
+  <div class="max-v-row"><label>Pitch: <span id="max-pitch-val">1.0</span></label><input id="max-pitch" type="range" min=".5" max="1.8" step=".05" value="1"></div>
+  <div class="max-v-row"><label>Volume: <span id="max-volume-val">1.0</span></label><input id="max-volume" type="range" min="0" max="1" step=".05" value="1"></div>
+  <div class="max-v-actions">
+    <button onclick="MAX_VOICE.test()">▶ Test</button>
+    <button onclick="MAX_VOICE.stop()">⏹ Stop</button>
+    <button onclick="MAX_VOICE.save()">💾 Save</button>
+  </div>
+  <p style="font-size:11px;color:#8994a5;margin-bottom:0">Uses your device/browser voices. No third-party TTS API is required.</p>
+</div>
+
+<script>
+const MAX_VOICE = (() => {
+  const KEY='chaya_voice_v2';
+  let voices=[];
+  const $=id=>document.getElementById(id);
+  function load(){
+    if(!('speechSynthesis' in window)){ UIManager?.showToast?.('Speech synthesis is not supported on this browser','warning'); return; }
+    voices=speechSynthesis.getVoices()||[];
+    const s=$('max-voice-select'); if(!s)return;
+    const saved=JSON.parse(localStorage.getItem(KEY)||'{}');
+    s.innerHTML='';
+    voices.forEach((v,i)=>{const o=document.createElement('option');o.value=i;o.textContent=`${v.name} — ${v.lang}${v.default?' ★':''}`;s.appendChild(o)});
+    if(saved.voiceName){const i=voices.findIndex(v=>v.name===saved.voiceName&&v.lang===saved.lang);if(i>=0)s.value=i}
+    $('max-rate').value=saved.rate||1;$('max-pitch').value=saved.pitch||1;$('max-volume').value=saved.volume??1;
+    updateLabels();
+  }
+  function updateLabels(){ $('max-rate-val').textContent=Number($('max-rate').value).toFixed(2);$('max-pitch-val').textContent=Number($('max-pitch').value).toFixed(2);$('max-volume-val').textContent=Number($('max-volume').value).toFixed(2)}
+  function settings(){return {rate:+$('max-rate').value,pitch:+$('max-pitch').value,volume:+$('max-volume').value,voiceIndex:+$('max-voice-select').value}}
+  function save(){const x=settings(),v=voices[x.voiceIndex];localStorage.setItem(KEY,JSON.stringify({...x,voiceName:v?.name||'',lang:v?.lang||''}));UIManager?.showToast?.('Voice settings saved','success')}
+  function speak(text){
+    if(!('speechSynthesis' in window))return false;
+    speechSynthesis.cancel();
+    const x=settings(),v=voices[x.voiceIndex];
+    const u=new SpeechSynthesisUtterance(String(text).replace(/[*#_`~]/g,' ').trim());
+    if(v)u.voice=v; u.rate=x.rate;u.pitch=x.pitch;u.volume=x.volume;
+    u.onstart=()=>window.app?.updateState?.('speaking');u.onend=()=>window.app?.updateState?.('idle');u.onerror=()=>window.app?.updateState?.('idle');
+    speechSynthesis.speak(u);return true;
+  }
+  function open(){load();$('max-voice-panel').classList.add('open')}
+  function close(){ $('max-voice-panel').classList.remove('open')}
+  function test(){speak('Hello! This is the new Chaya voice system.')}
+  function stop(){speechSynthesis?.cancel();window.app?.updateState?.('idle')}
+  ['max-rate','max-pitch','max-volume'].forEach(id=>document.getElementById(id)?.addEventListener('input',updateLabels));
+  speechSynthesis?.addEventListener?.('voiceschanged',load);
+  return {load,open,close,test,stop,save,speak};
+})();
+
+const MAX_ADMIN_V2 = (() => {
+  let users=[];
+  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  async function refresh(){
+    const d=await PROD_AUTH.api('/api/admin/dashboard'); users=d.users||[];
+    for(const id of ['p-users','p-active','p-chats','p-requests']) document.getElementById(id).textContent=
+      d.stats[id==='p-users'?'users':id==='p-active'?'active_sessions':id==='p-chats'?'chats':'api_requests']??0;
+    const old=document.getElementById('p-user-list');
+    if(!old)return;
+    render();
+  }
+  function render(){
+    const q=(document.getElementById('max-admin-search')?.value||'').toLowerCase();
+    const rows=users.filter(u=>(`${u.name} ${u.email} ${u.role}`).toLowerCase().includes(q));
+    document.getElementById('p-user-list').innerHTML=rows.map(u=>`<tr>
+      <td>${u.id}</td><td>${esc(u.name)}</td><td>${esc(u.email)}</td>
+      <td><span class="prod-badge">${esc(u.role)}${u.disabled?' / disabled':''}</span></td>
+      <td>${u.created_at?new Date(u.created_at).toLocaleString():'—'}</td><td>${u.active_sessions}</td>
+      <td><div class="prod-user-actions">
+        <button onclick="MAX_ADMIN_V2.toggle(${u.id},${!u.disabled})">${u.disabled?'Enable':'Disable'}</button>
+        <button onclick="MAX_ADMIN_V2.role(${u.id},'${u.role==='admin'?'user':'admin'}')">${u.role==='admin'?'Make user':'Make admin'}</button>
+        <button onclick="MAX_ADMIN_V2.revoke(${u.id})">Revoke</button>
+        <button class="danger" onclick="MAX_ADMIN_V2.remove(${u.id})">Delete</button>
+      </div></td></tr>`).join('')||'<tr><td colspan="7">No users found</td></tr>';
+  }
+  async function patch(id,body){await PROD_AUTH.api('/api/admin/users/'+id,{method:'PATCH',body:JSON.stringify(body)});await refresh()}
+  async function toggle(id,disabled){try{await patch(id,{disabled})}catch(e){alert(e.message)}}
+  async function role(id,role){try{await patch(id,{role})}catch(e){alert(e.message)}}
+  async function revoke(id){try{const d=await PROD_AUTH.api('/api/admin/users/'+id+'/revoke-sessions',{method:'POST'});UIManager?.showToast?.(`${d.revoked} session(s) revoked`,'success');await refresh()}catch(e){alert(e.message)}}
+  async function remove(id){if(!confirm('Delete this user and their data?'))return;try{await PROD_AUTH.api('/api/admin/users/'+id,{method:'DELETE'});await refresh()}catch(e){alert(e.message)}}
+  function init(){
+    const box=document.querySelector('.prod-admin-wrap');if(!box||document.getElementById('max-admin-search'))return;
+    const table=document.querySelector('.prod-table'); if(table) table.querySelector('thead tr').insertAdjacentHTML('beforeend','<th>Actions</th>');
+    const bar=document.createElement('div');bar.className='prod-admin-toolbar';
+    bar.innerHTML='<input id="max-admin-search" placeholder="Search users…"><button onclick="MAX_ADMIN_V2.refresh()">↻ Refresh</button><button onclick="MAX_VOICE.open()">🔊 Voice</button>';
+    const stat=box.querySelector('.prod-stat[style*="margin-top"]');stat?.prepend(bar);
+    document.getElementById('max-admin-search')?.addEventListener('input',render);
+  }
+  return {refresh,render,toggle,role,revoke,remove,init};
+})();
+const _oldAdminOpen=PROD_ADMIN.open;
+PROD_ADMIN.open=async()=>{await _oldAdminOpen();MAX_ADMIN_V2.init();await MAX_ADMIN_V2.refresh()};
+
+// Replace the old external-TTS-first behavior with native voice studio.
+// This prevents a broken third-party TTS URL from blocking speech.
+window.addEventListener('load',()=>{
+  if(window.app && typeof app.speakText==='function'){
+    app.__oldSpeakText=app.speakText.bind(app);
+    app.speakText=function(text){
+      const clean=String(text||'').replace(/[*#_`~]/g,' ').replace(/\s+/g,' ').trim();
+      if(!clean)return;
+      if(!MAX_VOICE.speak(clean)) this.__oldSpeakText(clean);
+    };
+  }
+  const h=document.querySelector('.header-actions');
+  if(h&&!document.getElementById('max-voice-button')){
+    const b=document.createElement('button');b.id='max-voice-button';b.title='Voice Studio';b.innerHTML='🔊';b.onclick=()=>MAX_VOICE.open();h.prepend(b);
+  }
+  MAX_VOICE.load();
+});
+</script>
+
+</body></html>','text/html')">HTML</button></div><div class="max-card"><h3>📥 Import</h3><button class="btn btn-primary" onclick="maxUI.importData()">Import JSON</button></div><div class="max-card"><h3>🧠 Memory</h3><input id="max-memory" class="form-control" placeholder="Save a memory"><button class="btn btn-primary" onclick="const v=document.getElementById('max-memory').value.trim();if(v){maxState.memories.push(v);maxSave();UIManager.showToast('Memory saved','success')}">Save Memory</button><p>${maxState.memories.length} memories stored locally.</p></div><div class="max-card"><h3>🧹 Cleanup</h3><button class="btn btn-danger" onclick="localStorage.removeItem(MAX_STORE);UIManager.showToast('MAX state cleared','success');location.reload()">Clear MAX Data</button></div></div>`)}
+};
+
+const maxAdmin={
+ close(){document.getElementById('max-admin-modal').classList.remove('active')},
+ open(){const pin=prompt('Admin PIN (frontend demo):');if(pin===null)return;if(pin!=='0000'){UIManager.showToast('Admin access denied. Change the demo PIN in source before deployment.','error');return}this.render()},
+ render(){const enabled=MAX_FEATURES.filter(f=>maxState.enabled[f.id]).length;document.getElementById('max-admin-body').innerHTML=`<div class="max-grid"><div class="max-card"><h3>👥 Users</h3><div class="max-stat">1</div><p>Local demo user</p></div><div class="max-card"><h3>💬 Messages</h3><div class="max-stat">${maxStats.messages}</div><p>Tracked in this browser</p></div><div class="max-card"><h3>🤖 Requests</h3><div class="max-stat">${maxStats.requests}</div><p>AI request counter</p></div><div class="max-card"><h3>🧩 Features</h3><div class="max-stat">${enabled}/${MAX_FEATURES.length}</div><p>Enabled feature registry</p></div><div class="max-card"><h3>⏱️ Last Latency</h3><div class="max-stat">${maxStats.lastLatency||0}ms</div><p>Latest AI request</p></div><div class="max-card"><h3>🚨 Errors</h3><div class="max-stat">${maxStats.errors}</div><p>Frontend/API errors</p></div></div><div class="max-tabs"><button class="max-tab active" onclick="maxAdmin.section('dashboard')">Dashboard</button><button class="max-tab" onclick="maxAdmin.section('features')">Features</button><button class="max-tab" onclick="maxAdmin.section('system')">System</button><button class="max-tab" onclick="maxAdmin.section('backup')">Backup</button></div><div id="max-admin-section"></div>`;this.section('dashboard');document.getElementById('max-admin-modal').classList.add('active')},
+ section(s){const el=document.getElementById('max-admin-section');if(!el)return;if(s==='dashboard')el.innerHTML='<div class="max-card"><h3>📈 Live Activity</h3><p>Local frontend telemetry is active. No server-side admin security is provided by this HTML-only app.</p></div>';if(s==='features')el.innerHTML=`<button class="btn btn-primary" onclick="maxUI.features();maxAdmin.close()">Open Feature Manager</button><button class="btn btn-primary" onclick="MAX_FEATURES.forEach(f=>maxState.enabled[f.id]=true);maxSave();maxAdmin.render()">Enable All</button><button class="btn btn-danger" onclick="MAX_FEATURES.forEach(f=>maxState.enabled[f.id]=false);maxSave();maxAdmin.render()">Disable All</button>`;if(s==='system')el.innerHTML=`<div class="max-grid"><div class="max-card"><h3>📡 Network</h3><p>${navigator.onLine?'Online':'Offline'}</p></div><div class="max-card"><h3>💾 Storage</h3><p>${(JSON.stringify(localStorage).length/1024).toFixed(1)} KB localStorage</p></div><div class="max-card"><h3>🧪 Self Test</h3><button class="btn btn-primary" onclick="UIManager.showToast('Core self-test passed','success')">Run Test</button></div></div>`;if(s==='backup')el.innerHTML='<button class="btn btn-primary" onclick="maxUI.exportData();maxAdmin.close()">Export Full Backup</button><button class="btn btn-primary" onclick="maxUI.importData()">Restore Backup</button>'}
+};
+
+function maxOpen(){maxUI.features()}
+function maxInjectControls(){
+ const footer=document.querySelector('.sidebar-footer');if(footer&&!document.getElementById('max-footer')){const d=document.createElement('div');d.id='max-footer';d.innerHTML=`<div class="max-dock"><button onclick="maxUI.features()" title="Feature Manager">🧩 MAX</button><button onclick="maxAdmin.open()" title="Admin Panel">👑 Admin</button><button onclick="maxUI.settings()" title="MAX Settings">⚙️</button></div>`;footer.appendChild(d)}
+ const area=document.querySelector('.control-area');if(area&&!document.getElementById('max-composer')){const c=document.createElement('div');c.className='max-composer';c.id='max-composer';c.innerHTML=`<input id="max-text-input" placeholder="Type a message…" autocomplete="off"><button onclick="maxSendText()" title="Send"><i class="fa-solid fa-paper-plane"></i></button><button onclick="maxUI.modes()" title="AI Modes"><i class="fa-solid fa-wand-magic-sparkles"></i></button>`;area.appendChild(c)}
+ const header=document.querySelector('.header-actions');if(header&&!document.getElementById('max-header-btn')){const b=document.createElement('button');b.id='max-header-btn';b.title='Chaya MAX';b.innerHTML='<i class="fa-solid fa-crown"></i>';b.onclick=()=>maxUI.features();header.prepend(b)}
+}
+function maxSendText(){const i=document.getElementById('max-text-input');if(!i||!i.value.trim())return;const text=i.value.trim();i.value='';maxStats.messages++;maxStats.requests++;maxSave();if(window.app&&typeof app.processUserInput==='function')app.processUserInput(text)}
+function maxPatchApp(){if(!window.app||app.__maxPatched)return;app.__maxPatched=true;const original=app.processUserInput.bind(app);app.processUserInput=async function(text){const start=performance.now();maxStats.messages++;maxStats.requests++;maxSave();try{return await original(text)}catch(e){maxStats.errors++;throw e}finally{maxStats.lastLatency=Math.round(performance.now()-start);maxSave()}};const originalAdd=app.addMessageToUI.bind(app);app.addMessageToUI=function(text,sender){originalAdd(text,sender);if(sender==='ai'||sender==='user')maxEnhanceMessages()}}
+function maxEnhanceMessages(){document.querySelectorAll('#chat-window .message-row').forEach(row=>{if(row.dataset.maxEnhanced)return;const bubble=row.querySelector('.bubble');if(!bubble)return;row.dataset.maxEnhanced='1';const tools=document.createElement('div');tools.className='msg-tools';const text=bubble.innerText;tools.innerHTML=`<button title="Copy" onclick="navigator.clipboard?.writeText(${JSON.stringify(text)});UIManager.showToast('Copied','success')">📋</button><button title="Like" onclick="UIManager.showToast('Liked','success')">👍</button><button title="Dislike" onclick="UIManager.showToast('Feedback saved')">👎</button><button title="Favorite" onclick="UIManager.showToast('Saved to favorites','success')">⭐</button><button title="Pin" onclick="maxState.pinned.push(${JSON.stringify(text)});maxSave();UIManager.showToast('Pinned','success')">📌</button><button title="Speak" onclick="app.speakText(${JSON.stringify(text)})">🔊</button>`;bubble.parentElement.appendChild(tools)})}
+window.addEventListener('online',()=>UIManager.showToast('Network online','success'));window.addEventListener('offline',()=>UIManager.showToast('Offline mode enabled','warning'));
+window.addEventListener('load',()=>{maxInjectControls();maxPatchApp();setTimeout(maxEnhanceMessages,500);const input=document.getElementById('max-text-input');input?.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();maxSendText()}})});
+setInterval(()=>{maxPatchApp();maxEnhanceMessages()},1500);
+
+</script>
+
+
+<style>
+#prod-auth{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;background:rgba(5,7,12,.97);backdrop-filter:blur(18px)}
+#prod-auth.hidden{display:none}.prod-card{width:min(430px,92vw);padding:28px;border:1px solid rgba(255,255,255,.14);border-radius:24px;background:rgba(20,24,34,.98);box-shadow:0 24px 80px rgba(0,0,0,.5)}
+.prod-card h2{margin:0 0 8px}.prod-card p{color:#9aa4b2}.prod-card input{width:100%;padding:13px;margin:6px 0;box-sizing:border-box;border-radius:12px;border:1px solid #303746;background:#0e121a;color:#fff}
+.prod-card button{width:100%;padding:13px;margin-top:8px;border:0;border-radius:12px;font-weight:700;cursor:pointer}.prod-primary{background:#fff;color:#111}.prod-secondary{background:#292f3b;color:#fff}
+#prod-auth-msg{min-height:20px;margin-top:10px;color:#ffb4b4;font-size:13px}
+#prod-userbar{position:fixed;right:14px;top:14px;z-index:9000;display:none;padding:9px 12px;border:1px solid rgba(255,255,255,.12);border-radius:12px;background:rgba(15,18,25,.86);backdrop-filter:blur(12px);font-size:12px}
+#prod-admin{position:fixed;inset:0;z-index:100001;display:none;overflow:auto;background:#070a10;padding:28px;box-sizing:border-box}
+#prod-admin.open{display:block}.prod-admin-wrap{max-width:1100px;margin:auto}.prod-admin-head{display:flex;justify-content:space-between;align-items:center}.prod-admin-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-top:20px}
+.prod-stat{padding:18px;border:1px solid #202735;border-radius:18px;background:#101621}.prod-stat b{font-size:24px}.prod-stat span{display:block;color:#8994a5;font-size:12px;margin-top:5px}
+.prod-table{width:100%;border-collapse:collapse;margin-top:20px}.prod-table th,.prod-table td{padding:10px;border-bottom:1px solid #202735;text-align:left;font-size:13px}
+.prod-close{padding:10px 14px;border:0;border-radius:10px;cursor:pointer}
+#prod-limit{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:9500;display:none;padding:8px 13px;border-radius:12px;background:rgba(15,18,25,.9);border:1px solid #293140;color:#fff;font-size:12px}
+</style>
+
+<div id="prod-auth">
+  <div class="prod-card">
+    <h2>TANMAY TANMAY GenAI Pro Max</h2>
+    <p>Secure account access</p>
+    <input id="prod-name" placeholder="Name" autocomplete="name">
+    <input id="prod-email" placeholder="Email" type="email" autocomplete="email">
+    <input id="prod-password" placeholder="Password" type="password" autocomplete="current-password">
+    <button class="prod-primary" onclick="PROD_AUTH.login()">Login</button>
+    <button class="prod-secondary" onclick="PROD_AUTH.signup()">Create Account</button>
+    <div id="prod-auth-msg"></div>
+  </div>
+</div>
+<div id="prod-userbar">
+  <span id="prod-user-label"></span>
+  <button id="prod-admin-btn" style="display:none;background:none;border:0;color:#fff;cursor:pointer" onclick="PROD_ADMIN.open()">👑 Admin</button>
+  <button onclick="PROD_AUTH.logout()" style="background:none;border:0;color:#fff;cursor:pointer">Logout</button>
+</div>
+<div id="prod-limit">⏱️ Session remaining: <span id="prod-limit-time">02:00:00</span></div>
+
+<div id="prod-admin">
+  <div class="prod-admin-wrap">
+    <div class="prod-admin-head"><div><h1>👑 TANMAY Admin Panel</h1><p>Production administration</p></div><button class="prod-close" onclick="PROD_ADMIN.close()">Close</button></div>
+    <div class="prod-admin-grid">
+      <div class="prod-stat"><b id="p-users">—</b><span>Total Users</span></div>
+      <div class="prod-stat"><b id="p-active">—</b><span>Active Sessions</span></div>
+      <div class="prod-stat"><b id="p-chats">—</b><span>Chats</span></div>
+      <div class="prod-stat"><b id="p-requests">—</b><span>API Requests</span></div>
+    </div>
+    <div class="prod-stat" style="margin-top:20px">
+      <h3>Users</h3>
+      <table class="prod-table"><thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Created</th><th>Active</th></tr></thead><tbody id="p-user-list"></tbody></table>
+    </div>
+  </div>
+</div>
+
+<script>
+const API_BASE = window.CHAYA_API_BASE || '';
+const PROD_AUTH = (() => {
+  let timer=null;
+  const msg=m=>document.getElementById('prod-auth-msg').textContent=m;
+  async function api(path, options={}) {
+    const r=await fetch(API_BASE+path,{credentials:'include',headers:{'Content-Type':'application/json',...(options.headers||{})},...options});
+    let data={}; try{data=await r.json()}catch{}
+    if(!r.ok) throw new Error(data.detail||data.message||'Request failed');
+    return data;
+  }
+  async function boot(){
+    try{const d=await api('/api/auth/me'); enter(d.user,d.session)}catch{document.getElementById('prod-auth').classList.remove('hidden')}
+  }
+  function enter(user,session){
+    document.getElementById('prod-auth').classList.add('hidden');
+    document.getElementById('prod-userbar').style.display='block';
+    document.getElementById('prod-user-label').textContent=`${user.name} (${user.role})`;
+    const ab=document.getElementById('prod-admin-btn'); ab.style.display=user.role==='admin'?'inline-block':'none';
+    if(user.role!=='admin') startLimit(session.expires_at); else document.getElementById('prod-limit').style.display='none';
+  }
+  function startLimit(expires){
+    const end=new Date(expires).getTime(); const box=document.getElementById('prod-limit'); box.style.display='block';
+    function tick(){let left=Math.max(0,end-Date.now()); let s=Math.floor(left/1000),h=Math.floor(s/3600),m=Math.floor((s%3600)/60),x=s%60;
+      document.getElementById('prod-limit-time').textContent=[h,m,x].map(v=>String(v).padStart(2,'0')).join(':'); if(left<=0){clearInterval(timer);location.reload()}}
+    tick();timer=setInterval(tick,1000);
+  }
+  async function login(){try{const d=await api('/api/auth/login',{method:'POST',body:JSON.stringify({email:document.getElementById('prod-email').value.trim(),password:document.getElementById('prod-password').value})});enter(d.user,d.session)}catch(e){msg(e.message)}}
+  async function signup(){try{const d=await api('/api/auth/register',{method:'POST',body:JSON.stringify({name:document.getElementById('prod-name').value.trim(),email:document.getElementById('prod-email').value.trim(),password:document.getElementById('prod-password').value})});enter(d.user,d.session)}catch(e){msg(e.message)}}
+  async function logout(){try{await api('/api/auth/logout',{method:'POST'})}finally{location.reload()}}
+  window.addEventListener('load',boot);
+  return {login,signup,logout,api};
+})();
+const PROD_ADMIN=(()=>({
+  open:async()=>{try{await PROD_AUTH.api('/api/admin/me');document.getElementById('prod-admin').classList.add('open');await PROD_ADMIN.refresh()}catch(e){alert(e.message)}},
+  close:()=>document.getElementById('prod-admin').classList.remove('open'),
+  refresh:async()=>{const d=await PROD_AUTH.api('/api/admin/dashboard');document.getElementById('p-users').textContent=d.stats.users;document.getElementById('p-active').textContent=d.stats.active_sessions;document.getElementById('p-chats').textContent=d.stats.chats;document.getElementById('p-requests').textContent=d.stats.api_requests;document.getElementById('p-user-list').innerHTML=d.users.map(u=>`<tr><td>${u.id}</td><td>${u.name}</td><td>${u.email}</td><td>${u.role}</td><td>${new Date(u.created_at).toLocaleString()}</td><td>${u.active_sessions}</td></tr>`).join('')}
+}))();
+</script>
+
+
+<!-- ============================================================
+     CHAYA MAX 2.0 - Voice + Admin + UX Upgrade
+     ============================================================ -->
+<style>
+#max-voice-panel{position:fixed;right:18px;bottom:84px;width:min(360px,calc(100vw - 36px));z-index:100050;display:none;padding:18px;border:1px solid rgba(255,255,255,.14);border-radius:20px;background:rgba(12,16,24,.96);backdrop-filter:blur(18px);box-shadow:0 20px 70px rgba(0,0,0,.45)}
+#max-voice-panel.open{display:block}.max-v-row{display:grid;gap:7px;margin:10px 0}.max-v-row label{font-size:12px;color:#9aa4b2}.max-v-row select,.max-v-row input{width:100%}
+#max-voice-panel button{padding:9px 12px;border:1px solid #303746;border-radius:10px;background:#171d28;color:#fff;cursor:pointer}
+.max-v-actions{display:flex;gap:8px;flex-wrap:wrap}.max-v-actions button{flex:1}
+#prod-admin.open{z-index:100060}
+.prod-admin-toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+.prod-admin-toolbar input{flex:1;min-width:180px;padding:11px;border-radius:10px;border:1px solid #303746;background:#0e121a;color:#fff}
+.prod-admin-toolbar button{padding:11px 14px;border:0;border-radius:10px;cursor:pointer}
+.prod-user-actions{display:flex;gap:5px;flex-wrap:wrap}.prod-user-actions button{padding:6px 8px;border:1px solid #303746;border-radius:7px;background:#171d28;color:#fff;cursor:pointer}
+.prod-user-actions .danger{background:#36191d}
+.prod-badge{display:inline-block;padding:3px 7px;border-radius:999px;font-size:11px;background:#202938}
+</style>
+
+<div id="max-voice-panel" aria-label="Voice settings">
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <h3 style="margin:0">🔊 Voice Studio</h3>
+    <button onclick="MAX_VOICE.close()">✕</button>
+  </div>
+  <div class="max-v-row"><label>Voice</label><select id="max-voice-select"></select></div>
+  <div class="max-v-row"><label>Speed: <span id="max-rate-val">1.0</span></label><input id="max-rate" type="range" min=".5" max="2" step=".05" value="1"></div>
+  <div class="max-v-row"><label>Pitch: <span id="max-pitch-val">1.0</span></label><input id="max-pitch" type="range" min=".5" max="1.8" step=".05" value="1"></div>
+  <div class="max-v-row"><label>Volume: <span id="max-volume-val">1.0</span></label><input id="max-volume" type="range" min="0" max="1" step=".05" value="1"></div>
+  <div class="max-v-actions">
+    <button onclick="MAX_VOICE.test()">▶ Test</button>
+    <button onclick="MAX_VOICE.stop()">⏹ Stop</button>
+    <button onclick="MAX_VOICE.save()">💾 Save</button>
+  </div>
+  <p style="font-size:11px;color:#8994a5;margin-bottom:0">Uses your device/browser voices. No third-party TTS API is required.</p>
+</div>
+
+<script>
+const MAX_VOICE = (() => {
+  const KEY='chaya_voice_v2';
+  let voices=[];
+  const $=id=>document.getElementById(id);
+  function load(){
+    if(!('speechSynthesis' in window)){ UIManager?.showToast?.('Speech synthesis is not supported on this browser','warning'); return; }
+    voices=speechSynthesis.getVoices()||[];
+    const s=$('max-voice-select'); if(!s)return;
+    const saved=JSON.parse(localStorage.getItem(KEY)||'{}');
+    s.innerHTML='';
+    voices.forEach((v,i)=>{const o=document.createElement('option');o.value=i;o.textContent=`${v.name} — ${v.lang}${v.default?' ★':''}`;s.appendChild(o)});
+    if(saved.voiceName){const i=voices.findIndex(v=>v.name===saved.voiceName&&v.lang===saved.lang);if(i>=0)s.value=i}
+    $('max-rate').value=saved.rate||1;$('max-pitch').value=saved.pitch||1;$('max-volume').value=saved.volume??1;
+    updateLabels();
+  }
+  function updateLabels(){ $('max-rate-val').textContent=Number($('max-rate').value).toFixed(2);$('max-pitch-val').textContent=Number($('max-pitch').value).toFixed(2);$('max-volume-val').textContent=Number($('max-volume').value).toFixed(2)}
+  function settings(){return {rate:+$('max-rate').value,pitch:+$('max-pitch').value,volume:+$('max-volume').value,voiceIndex:+$('max-voice-select').value}}
+  function save(){const x=settings(),v=voices[x.voiceIndex];localStorage.setItem(KEY,JSON.stringify({...x,voiceName:v?.name||'',lang:v?.lang||''}));UIManager?.showToast?.('Voice settings saved','success')}
+  function speak(text){
+    if(!('speechSynthesis' in window))return false;
+    speechSynthesis.cancel();
+    const x=settings(),v=voices[x.voiceIndex];
+    const u=new SpeechSynthesisUtterance(String(text).replace(/[*#_`~]/g,' ').trim());
+    if(v)u.voice=v; u.rate=x.rate;u.pitch=x.pitch;u.volume=x.volume;
+    u.onstart=()=>window.app?.updateState?.('speaking');u.onend=()=>window.app?.updateState?.('idle');u.onerror=()=>window.app?.updateState?.('idle');
+    speechSynthesis.speak(u);return true;
+  }
+  function open(){load();$('max-voice-panel').classList.add('open')}
+  function close(){ $('max-voice-panel').classList.remove('open')}
+  function test(){speak('Hello! This is the new Chaya voice system.')}
+  function stop(){speechSynthesis?.cancel();window.app?.updateState?.('idle')}
+  ['max-rate','max-pitch','max-volume'].forEach(id=>document.getElementById(id)?.addEventListener('input',updateLabels));
+  speechSynthesis?.addEventListener?.('voiceschanged',load);
+  return {load,open,close,test,stop,save,speak};
+})();
+
+const MAX_ADMIN_V2 = (() => {
+  let users=[];
+  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  async function refresh(){
+    const d=await PROD_AUTH.api('/api/admin/dashboard'); users=d.users||[];
+    for(const id of ['p-users','p-active','p-chats','p-requests']) document.getElementById(id).textContent=
+      d.stats[id==='p-users'?'users':id==='p-active'?'active_sessions':id==='p-chats'?'chats':'api_requests']??0;
+    const old=document.getElementById('p-user-list');
+    if(!old)return;
+    render();
+  }
+  function render(){
+    const q=(document.getElementById('max-admin-search')?.value||'').toLowerCase();
+    const rows=users.filter(u=>(`${u.name} ${u.email} ${u.role}`).toLowerCase().includes(q));
+    document.getElementById('p-user-list').innerHTML=rows.map(u=>`<tr>
+      <td>${u.id}</td><td>${esc(u.name)}</td><td>${esc(u.email)}</td>
+      <td><span class="prod-badge">${esc(u.role)}${u.disabled?' / disabled':''}</span></td>
+      <td>${u.created_at?new Date(u.created_at).toLocaleString():'—'}</td><td>${u.active_sessions}</td>
+      <td><div class="prod-user-actions">
+        <button onclick="MAX_ADMIN_V2.toggle(${u.id},${!u.disabled})">${u.disabled?'Enable':'Disable'}</button>
+        <button onclick="MAX_ADMIN_V2.role(${u.id},'${u.role==='admin'?'user':'admin'}')">${u.role==='admin'?'Make user':'Make admin'}</button>
+        <button onclick="MAX_ADMIN_V2.revoke(${u.id})">Revoke</button>
+        <button class="danger" onclick="MAX_ADMIN_V2.remove(${u.id})">Delete</button>
+      </div></td></tr>`).join('')||'<tr><td colspan="7">No users found</td></tr>';
+  }
+  async function patch(id,body){await PROD_AUTH.api('/api/admin/users/'+id,{method:'PATCH',body:JSON.stringify(body)});await refresh()}
+  async function toggle(id,disabled){try{await patch(id,{disabled})}catch(e){alert(e.message)}}
+  async function role(id,role){try{await patch(id,{role})}catch(e){alert(e.message)}}
+  async function revoke(id){try{const d=await PROD_AUTH.api('/api/admin/users/'+id+'/revoke-sessions',{method:'POST'});UIManager?.showToast?.(`${d.revoked} session(s) revoked`,'success');await refresh()}catch(e){alert(e.message)}}
+  async function remove(id){if(!confirm('Delete this user and their data?'))return;try{await PROD_AUTH.api('/api/admin/users/'+id,{method:'DELETE'});await refresh()}catch(e){alert(e.message)}}
+  function init(){
+    const box=document.querySelector('.prod-admin-wrap');if(!box||document.getElementById('max-admin-search'))return;
+    const table=document.querySelector('.prod-table'); if(table) table.querySelector('thead tr').insertAdjacentHTML('beforeend','<th>Actions</th>');
+    const bar=document.createElement('div');bar.className='prod-admin-toolbar';
+    bar.innerHTML='<input id="max-admin-search" placeholder="Search users…"><button onclick="MAX_ADMIN_V2.refresh()">↻ Refresh</button><button onclick="MAX_VOICE.open()">🔊 Voice</button>';
+    const stat=box.querySelector('.prod-stat[style*="margin-top"]');stat?.prepend(bar);
+    document.getElementById('max-admin-search')?.addEventListener('input',render);
+  }
+  return {refresh,render,toggle,role,revoke,remove,init};
+})();
+const _oldAdminOpen=PROD_ADMIN.open;
+PROD_ADMIN.open=async()=>{await _oldAdminOpen();MAX_ADMIN_V2.init();await MAX_ADMIN_V2.refresh()};
+
+// Replace the old external-TTS-first behavior with native voice studio.
+// This prevents a broken third-party TTS URL from blocking speech.
+window.addEventListener('load',()=>{
+  if(window.app && typeof app.speakText==='function'){
+    app.__oldSpeakText=app.speakText.bind(app);
+    app.speakText=function(text){
+      const clean=String(text||'').replace(/[*#_`~]/g,' ').replace(/\s+/g,' ').trim();
+      if(!clean)return;
+      if(!MAX_VOICE.speak(clean)) this.__oldSpeakText(clean);
+    };
+  }
+  const h=document.querySelector('.header-actions');
+  if(h&&!document.getElementById('max-voice-button')){
+    const b=document.createElement('button');b.id='max-voice-button';b.title='Voice Studio';b.innerHTML='🔊';b.onclick=()=>MAX_VOICE.open();h.prepend(b);
+  }
+  MAX_VOICE.load();
+});
+</script>
+
+</body>
+</html>
